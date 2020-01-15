@@ -183,7 +183,7 @@ Return all nodes that are immediate successors of the specified node or undefine
 
 Return all nodes that are immediate predecessors or successors of the specified node or undefined if node v is not in the graph. Takes O(|V|) time.
 
-***recursSuccessor(v | v[], byEdgeLabels=[], returnNodeInfo=false, returnStructure='flatList')*** - TODO  
+***recursSuccessors(v | v[], byEdgeLabels=[], returnNodeInfo=false, returnStructure='flatList')*** - TODO  
 
 Return all nodes that are successors of the specified node or nodes **recursively**, or undefined if node v is not in the graph, an empty array or an array with non-existing v. Behavior is undefined for undirected graphs - use neighbors instead.  
 - byEdgeLabels = allows traversing the graph only along specific edge types. If empty array - traverse on all edge types.  
@@ -196,10 +196,9 @@ Return all nodes that are successors of the specified node or nodes **recursivel
 Return all nodes that are predecessors of the specified node or nodes **recursively**, or undefined if node v is not in the graph, an empty array or an array with non-existing v. Behavior is undefined for undirected graphs - use neighbors instead.  
 - byEdgeLabels = allows traversing the graph only along specific edge types. If empty array - traverse on all edge types.  
 - returnNodeInfo = true returns all the node object. False (default) returns only the node key.
-- returnStructure = 'flatList' returns a flat list of all successor nodes.
-- returnStructure = 'subGraph' returns a sub-graph of all successor nodes.
-- returnStructure = 'layers' returns a layered representation (array of arrays) of all successor nodes.
-
+- returnStructure = 'flatList' returns a flat list of all predecessor nodes.
+- returnStructure = 'subGraph' returns a sub-graph of all predecessor nodes.
+- returnStructure = 'layers' returns a layered representation (array of arrays) of all predecessor nodes.
 
 
 
