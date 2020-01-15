@@ -19,21 +19,18 @@
 ## Creating a graph
 --------------------
 
-The creation of a new graph instance is identical to the instantiation of a graphLib object.
+To create a new Graph instance:
 ```
 let graph = new Graph()
 ```
-By default this will create a directed graph that does not allow multi-edges or compound nodes. The following options can be used when constructing a new graph:
+By default this will create a **directed** graph that **allows multi-edges**. The following options can be used when constructing a new graph:
 
 * directed: set to true to get a directed graph and false to get an undirected graph. An undirected graph does not treat the order of nodes in an edge as significant. In other words, g.edge("a", "b") === g.edge("b", "a") for an undirected graph. Default: true.
 
-* multigraph: set to true to allow a graph to have multiple edges between the same pair of nodes. Default: false.
-
-* compound: set to true to allow a graph to have compound nodes - nodes which can be the parent of other nodes. Default: false.
-To set the options, pass in an options object to the Graph constructor. For example, to create a directed compound multigraph:
+* multigraph: set to true to allow a graph to have multiple edges between the same pair of nodes. Default: true.
 
 ```
-var g = new Graph({ directed: true, compound: true, multigraph: true });
+var g = new Graph({ directed: true, multigraph: true });
 ```
 
 ## Nodes
@@ -50,7 +47,7 @@ A type is serializable and can be used in a service interface if it
 
 Methods:
 
-***setNode(v, [label])***  
+***setNode(v, label[])***  
 
 Creates or updates the value for a single node v in the graph.
 ```
@@ -66,9 +63,17 @@ g.setNode("my-id", "my-label");
 g.node("my-id"); // returns "my-label"
 ```
 
+***nodes()***
+
+Returns an array of the ids of the nodes in the graph. Use node(v) to get the label for each node. Takes O(|V|) time.
+
 ***hasNode(v)***
 
 Returns true if the graph has a node with the id v. Takes O(1) time.
+
+***removeNode(v)***
+
+Remove the node with the id v in the graph or do nothing if the node is not in the graph. If the node was removed this function also removes any incident edges. Returns the graph, allowing this to be chained with other functions. Takes O(|E|) time.
 
 ***nodeCount()***
 
@@ -77,10 +82,6 @@ Returns the number of nodes in the graph.
 ***setDefaultNodeLabel(val)***
 
 Sets a new default value that is assigned to nodes that are created without a label. If val is not a function it is assigned as the label directly. If val is a function, it is called with the id of the node being created.
-
-***nodes()***
-
-Returns the ids of the nodes in the graph. Use node(v) to get the label for each node. Takes O(|V|) time.
 
 ***filterNodes(filterFunction)*** - TODO
 
@@ -94,9 +95,6 @@ Returns those nodes in the graph that have no in-edges. Takes O(|V|) time.
 
 Returns those nodes in the graph that have no out-edges. Takes O(|V|) time.
 
-***removeNode(v)***
-
-Remove the node with the id v in the graph or do nothing if the node is not in the graph. If the node was removed this function also removes any incident edges. Returns the graph, allowing this to be chained with other functions. Takes O(|E|) time.
 
 
 ## Edges
@@ -125,21 +123,33 @@ g.edge({ v: "source", w: "target" }); // returns "my-label"
 
 Methods:
 
-***setEdge(v, w, [label], [name]) # setEdge(edgeObj, [label])***
+***setEdge(v, w, label[])***
 
-Creates or updates the label(s) for the edge (v, w) with the optionally supplied name. If label is supplied it is set as the value for the edge. If label is not supplied and the edge was created by this call then the default edge label will be assigned. The name parameter is only useful with multigraphs. Returns the graph, allowing this to be chained with other functions. Takes O(1) time.
+Creates or updates the label(s) for the edge (v, w). If label(s) are supplied, they are set as the value for the edge. If label is not supplied and the edge was created by this call then the default edge label will be assigned. Returns the graph, allowing this to be chained with other functions. Takes O(1) time.
 
-***hasEdge(v, w, [name]) # hasEdge(edgeObj)***
+***hasEdge(v, w)***
 
 Returns true if the graph has an edge between v and w with the optional name. The name parameter is only useful with multigraphs. v and w can be interchanged for undirected graphs. Takes O(1) time.
 
-***edge(v, w, [name]) # edge(edgeObj)***
+***edge(v, w)***
 
 Returns the label for the edge (v, w) if the graph has an edge between v and w with the optional name. Returned undefined if there is no such edge in the graph. The name parameter is only useful with multigraphs. v and w can be interchanged for undirected graphs. Takes O(1) time.
+
+***edges()***
+
+Returns the edgeObj for each edge in the graph. Use edge(edgeObj) to get the label for each edge. Takes O(|E|) time.
 
 ***removeEdge(v, w)***
 
 Removes the edge (v, w) if the graph has an edge between v and w with the optional name. If not this function does nothing. The name parameter is only useful with multigraphs. v and w can be interchanged for undirected graphs. Takes O(1) time.
+
+***addEdgeLabels(label | label[])***
+
+Adds label or labels to array of edge labels.
+
+***removeEdgeLabels(label | label[])***
+
+Removes label or labels from array of edged labels.
 
 ***edgeCount()***
 
@@ -149,21 +159,17 @@ Returns the number of edges in the graph.
 
 Sets a new default value that is assigned to edges that are created without a label. If val is not a function it is assigned as the label directly. If val is a function, it is called with the parameters (v, w, name).
 
-***edges()***
+***inEdges(v)***
 
-Returns the edgeObj for each edge in the graph. Use edge(edgeObj) to get the label for each edge. Takes O(|E|) time.
+Return all edges that point to the node v. Behavior is undefined for undirected graphs - use nodeEdges instead. Returns undefined if node v is not in the graph. Takes O(|E|) time.
 
-***inEdges(v, [u])***
+***outEdges(v)***
 
-Return all edges that point to the node v. Optionally filters those edges down to just those coming from node u. Behavior is undefined for undirected graphs - use nodeEdges instead. Returns undefined if node v is not in the graph. Takes O(|E|) time.
+Return all edges that are pointed at by node v. Behavior is undefined for undirected graphs - use nodeEdges instead. Returns undefined if node v is not in the graph. Takes O(|E|) time.
 
-***outEdges(v, [w])***
+***nodeEdges(v)***
 
-Return all edges that are pointed at by node v. Optionally filters those edges down to just those point to w. Behavior is undefined for undirected graphs - use nodeEdges instead. Returns undefined if node v is not in the graph. Takes O(|E|) time.
-
-***nodeEdges(v, [w])***
-
-Returns all edges to or from node v regardless of direction. Optionally filters those edges down to just those between nodes v and w regardless of direction. Returns undefined if node v is not in the graph. Takes O(|E|) time.
+Returns all edges to or from node v regardless of direction. Returns undefined if node v is not in the graph. Takes O(|E|) time.
 
 
 ## Sub-graph
