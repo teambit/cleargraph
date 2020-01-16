@@ -1,0 +1,31 @@
+{
+  "name": "bit-graph",
+  "version": "1.0.0",
+  "description": "BitGraph is a graph library uniquely designed for Bit's purposes.",
+  "main": "index.js",
+  "dependencies": {
+    "@types/chai": "^4.2.7",
+    "@types/mocha": "^5.2.7",
+    "chai": "^4.2.0",
+    "graphlib": "^2.1.8",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.4"
+  },
+  "devDependencies": {
+    "mocha": "^7.0.0"
+  },
+  "scripts": {
+    "test": "mocha --require ts-node/register/transpile-only --require source-map-support/register --recursive src/**/*.spec.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teambit/bit-graph.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/teambit/bit-graph/issues"
+  },
+  "homepage": "https://github.com/teambit/bit-graph#readme"
+}

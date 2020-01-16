@@ -17,7 +17,7 @@
     "outDir": "./dist"
   },
   "include": [
-    "src"
+    "src", "src/abstract-graph/abstract-graph.spec.ts"
   ],
   "exclude": [
     "components",

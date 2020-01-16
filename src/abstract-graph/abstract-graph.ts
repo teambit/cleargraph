@@ -1,4 +1,4 @@
-import { Graph as GraphLib} from '@dagrejs/graphlib/lib';
+import { Graph as GraphLib} from 'graphlib/lib';
 
 export class Graph{
     graph: GraphLib;
@@ -94,7 +94,65 @@ export class Graph{
         return this.graph.nodeGraph(nodeKey)
     }
 
+    predecessors(nodeKeys: string | string[], byEdgeLabels:string[]=[], returnNodeInfo:boolean=false){
+        //TODO
+    }
+
+    successors(nodeKeys: string | string[], byEdgeLabels:string[]=[], returnNodeInfo:boolean=false){
+        //TODO
+    }
+
+    neighbors(nodeKeys: string | string[], byEdgeLabels:string[]=[], returnNodeInfo:boolean=false){
+        //TODO
+    }
+
+    recursSuccessors(nodeKeys: string | string[],
+                     byEdgeLabels:string[]=[],
+                     returnNodeInfo:boolean=false,
+                     returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
+        //TODO
+    }
+
+    recursPredecessors(nodeKeys: string | string[],
+        byEdgeLabels:string[]=[],
+        returnNodeInfo:boolean=false,
+        returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
+        //TODO
+    }
+
+    setGraphLabel(label:string){
+        return this.graph.setGraph(label)
+    }
+
+    getGraphLabel(){
+        return this.graph.graph()
+    }
+
+    diff(graph:GraphLib){
+        //TODO
+    }
+
+    merge(graph:GraphLib){
+        //TODO
+    }
+
+    isDirected(){
+        return this.graph.isDirected()
+    }
+
+    isMultigraph(){
+        return this.graph,this.isMultigraph()
+    }
+
     
+
+
+
+
+
+
+
+
 
 
 

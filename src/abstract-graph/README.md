@@ -194,7 +194,7 @@ Return all nodes that are immediate predecessors or successors of the specified 
 Return all nodes that are successors of the specified node or nodes **recursively**, or undefined if node v is not in the graph, an empty array or an array with non-existing v. Behavior is undefined for undirected graphs - use neighbors instead.  
 - byEdgeLabels = allows traversing the graph only along specific edge types. If empty array - traverse on all edge types.  
 - returnNodeInfo = true returns all the node object. False (default) returns only the node key.  
-- returnStructure = 'flatList' returns a flat list of all successor nodes.  
+- returnStructure = 'flatList' (default) returns a flat list of all successor nodes.  
 - returnStructure = 'subGraph' returns a sub-graph of all successor nodes.  
 - returnStructure = 'layers' returns a layered representation (array of arrays) of all successor nodes.
 
@@ -212,7 +212,11 @@ Return all nodes that are predecessors of the specified node or nodes **recursiv
 ---------------
 Methods:
 
-***graph()***
+***setGraphLabel(label)***
+
+Sets the label for the graph to label.
+
+***getGraphLabel()***
 
 Returns the currently assigned label for the graph. If no label has been assigned, returns undefined. Example:
 
@@ -222,10 +226,6 @@ g.graph(); // returns undefined
 g.setGraph("graph-label");
 g.graph(); // returns "graph-label"
 ```
-
-***setGraph(label)***
-
-Sets the label for the graph to label.
 
 ***diff(g)***
 
@@ -256,9 +256,6 @@ undirected.edge("b", "a"); // returns "my-label"
 
 Returns true if the graph is a multigraph.
 
-***isCompound()***
-
-Returns true if the graph is compound.
 
 ## Serialization
 -----------------
