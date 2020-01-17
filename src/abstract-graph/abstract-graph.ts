@@ -4,6 +4,7 @@ export class Graph{
     graph: GraphLib;
     constructor(directed:boolean=true, multigraph:boolean=true){
         this.graph = new GraphLib({directed:directed, multigraph:multigraph, compound:true})
+        this.graph.setDefaultEdgeLabel({})
     }
 
     setNode(key: string, value: any){
@@ -14,7 +15,25 @@ export class Graph{
         return this.graph.node(key)
     }
 
-    nodes(){
+    getNodeInfo(nodeKeys:string | string[]){
+        if(typeof(nodeKeys) === "string"){
+            return {[nodeKeys]:this.graph.node(nodeKeys)}
+        }
+        let graphObj: object = {}
+        nodeKeys.forEach(node => {
+            graphObj[node] = this.graph.node(node)
+        });
+         return graphObj
+    }
+
+    private objHasKeyValue(obj: any, key:string, value:any) {
+        return obj.hasOwnProperty(key) && obj[key] === value;
+    }
+
+    nodes(returnNodeInfo:boolean=false){
+        if(!!returnNodeInfo){
+            return this.getNodeInfo(this.graph.nodes())
+        }
         return this.graph.nodes()
     }
 
@@ -46,7 +65,7 @@ export class Graph{
         return this.graph.sinks()
     }
 
-    setEdge(sourceKey: string,  tragetKey:string, labels: string[]){
+    setEdge(sourceKey: string,  tragetKey:string, labels: {}){
         return this.graph.setEdge(sourceKey, tragetKey, labels)
     }
 
@@ -82,7 +101,10 @@ export class Graph{
         return this.graph.setDefaultEdgeLabel()
     }
 
-    inEdges(nodeKey:string){
+    inEdges(nodeKey:string, returnEdgeInfo:boolean=false){
+        if(!!returnEdgeInfo){
+
+        }
         return this.graph.inEdges(nodeKey)
     }
 
@@ -91,27 +113,57 @@ export class Graph{
     }
 
     nodeEdges(nodeKey:string){
-        return this.graph.nodeGraph(nodeKey)
+        return this.graph.nodeEdges(nodeKey)
     }
 
-    predecessors(nodeKeys: string | string[], byEdgeLabels:string[]=[], returnNodeInfo:boolean=false){
-        //TODO
+    predecessors(nodeKey: string, byEdgeLabels:{key:string, val:string}={key:'', val:''}, returnNodeInfo:boolean=false){
+        let nodesToReturn: string[] = []
+        if(byEdgeLabels.key === '' && byEdgeLabels.key === ''){
+            nodesToReturn = this.graph.predecessors(nodeKey)
+        }
+        else{
+            const inEdges = this.graph.inEdges(nodeKey)
+
+            inEdges.forEach(edge => {
+                let edgeLablesObj = this.graph.edge(edge.v, edge.w)
+                if(this.objHasKeyValue(edgeLablesObj, byEdgeLabels.key, byEdgeLabels.val)){
+                    nodesToReturn.push(edge.v)}
+            })
+        }
+        return returnNodeInfo?
+            this.getNodeInfo(nodesToReturn)
+            :
+            nodesToReturn
     }
 
-    successors(nodeKeys: string | string[], byEdgeLabels:string[]=[], returnNodeInfo:boolean=false){
-        //TODO
+    successors(nodeKeys: string, byEdgeLabels:string[]=[], returnNodeInfo:boolean=false){
+        return []
     }
 
     neighbors(nodeKeys: string | string[], byEdgeLabels:string[]=[], returnNodeInfo:boolean=false){
-        //TODO
+        return []
     }
 
-    recursSuccessors(nodeKeys: string | string[],
+    recursSuccessors(nodeKeys: string,
                      byEdgeLabels:string[]=[],
                      returnNodeInfo:boolean=false,
                      returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
-        //TODO
-    }
+                        // (
+                        //     bitId: string,
+                        //     successorsList: string[] = [],
+                        //     visited: { [key: string]: boolean } = {}
+                        //   ) 
+    //     const successors = this.successors(bitId) || [];
+    //     if (successors.length > 0 && !visited[bitId]) {
+    //         successors.forEach(successor => {
+    //         visited[bitId] = true;
+    //         successorsList.push(successor);
+    
+    //         return this.recursSuccessors(successor, successorsList, visited);
+    //         });
+    //     }
+    //     return successorsList;
+     }
 
     recursPredecessors(nodeKeys: string | string[],
         byEdgeLabels:string[]=[],
@@ -143,20 +195,6 @@ export class Graph{
     isMultigraph(){
         return this.graph,this.isMultigraph()
     }
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
 
 }
 

@@ -63,9 +63,10 @@ g.setNode("my-id", "my-label");
 g.node("my-id"); // returns "my-label"
 ```
 
-***nodes()***
+***nodes(returnNodeInfo:boolean=false)***
 
-Returns an array of the ids of the nodes in the graph. Use node(v) to get the label for each node. Takes O(|V|) time.
+If returnNodeInfo is set to false (default) - returns an array of the ids of the nodes in the graph. 
+Else - returns an object of all {nodeKey:nodeVal} in the graph.
 
 ***hasNode(v)***
 
@@ -104,8 +105,8 @@ Edges in graphlib, which Graph extends, are identified by the nodes they connect
 
 ```
 var g = new Graph();
-g.setEdge("source", "target", "my-label");
-g.edge("source", "target"); // returns "my-label"
+g.setEdge("source", "target", {depType:"dev"});
+g.edge("source", "target"); // returns {depType:"dev"}
 ```
 
 However, we need a way to uniquely identify an edge in a single object for various edge queries (e.g. outEdges). We use edgeObjs for this purpose. They consist of the following properties:
@@ -117,15 +118,15 @@ Any edge function that takes an edge id will also work with an edgeObj. For exam
 
 ```
 var g = new Graph();
-g.setEdge("source", "target", "my-label");
-g.edge({ v: "source", w: "target" }); // returns "my-label"
+g.setEdge("source", "target", {depType:"dev"});
+g.edge({ v: "source", w: "target" }); // returns {depType:"dev"}
 ```
 
 Methods:
 
-***setEdge(v, w, label[])***
+***setEdge(v, w, labels{})***
 
-Creates or updates the label(s) for the edge (v, w). If label(s) are supplied, they are set as the value for the edge. If label is not supplied and the edge was created by this call then the default edge label will be assigned. Returns the graph, allowing this to be chained with other functions. Takes O(1) time.
+Creates or updates the label(s) for the edge (v, w). If label(s) are supplied (an object), they are set as the value for the edge. If labels are not supplied and the edge was created by this call then the default edge label will be assigned. Returns the graph, allowing this to be chained with other functions. Takes O(1) time.
 
 ***hasEdge(v, w)***
 
@@ -133,7 +134,7 @@ Returns true if the graph has an edge between v and w with the optional name. Th
 
 ***edge(v, w)***
 
-Returns the label for the edge (v, w) if the graph has an edge between v and w with the optional name. Returned undefined if there is no such edge in the graph. The name parameter is only useful with multigraphs. v and w can be interchanged for undirected graphs. Takes O(1) time.
+Returns the labels object for the edge (v, w) if the graph has an edge between v and w. Returned undefined if there is no such edge in the graph. The name parameter is only useful with multigraphs. v and w can be interchanged for undirected graphs. Takes O(1) time.
 
 ***edges()***
 
@@ -143,13 +144,13 @@ Returns the edgeObj for each edge in the graph. Use edge(edgeObj) to get the lab
 
 Removes the edge (v, w) if the graph has an edge between v and w with the optional name. If not this function does nothing. The name parameter is only useful with multigraphs. v and w can be interchanged for undirected graphs. Takes O(1) time.
 
-***addEdgeLabels(label | label[])***
+***addEdgeLabels(labels{})***
 
-Adds label or labels to array of edge labels.
+Adds the passed label key-value entries to the label object.
 
-***removeEdgeLabels(label | label[])***
+***removeEdgeLabels(labels{})***
 
-Removes label or labels from array of edged labels.
+Removes passed label key-value pairs from existing labels object.
 
 ***edgeCount()***
 

@@ -10,22 +10,40 @@ describe('GraphTester', () => {
     g.setNode("e", { packageDependencies: ["9", "10"] })
     g.setNode("f", { packageDependencies: ["11", "12"] })
     g.setNode("g", { packageDependencies: ["13", "14"] })
-    g.setEdge("a", "b", ["depends on"])
-    g.setEdge("a", "c", ["depends on"])
-    g.setEdge("c", "d", ["depends on"])
-    g.setEdge("c", "e", ["depends on"])
-    g.setEdge("d", "f", ["depends on"])
-    g.setEdge("e", "d", ["depends on"])
-    g.setEdge("f", "a", ["depends on"])
-    g.setEdge("g", "a", ["depends on"])
+    g.setEdge("a", "b", {depType: "peer", semDist: 3})
+    g.setEdge("a", "c", {depType: "dev", semDist: 1})
+    g.setEdge("c", "d", {depType: "package"})
+    g.setEdge("c", "e", {depType: "package", semDist: 2})
+    g.setEdge("d", "f", {depType: "peer"})
+    g.setEdge("e", "d", {depType: "dev"})
+    g.setEdge("f", "a", {depType: "package"})
+    g.setEdge("g", "a", {depType: "dev", semDist: 1})
 
 
     it('should return node value', () => {
         expect(g.node("b")).to.deep.equal({ packageDependencies: ["3", "4"] })
     })
 
+    it('should get node info for a single node key', () => {
+        expect(g.getNodeInfo("a")).to.deep.equal({ "a": { packageDependencies: ["1", "2"] } })
+    })
+
+    it('should get node info for multiple node keys', () => {
+        expect(g.getNodeInfo(["a","b"])).to.deep.equal(
+            { "a": { packageDependencies: ["1", "2"] },
+              "b": { packageDependencies: ["3", "4"] }})
+    })
+
     it('should return graph nodes', () => {
         expect(g.nodes()).to.deep.equal([ 'a', 'b', 'c', 'd', 'e', 'f', 'g' ])
+    })
+
+    it('should return graph nodes and values', () => {
+        let k = new Graph()
+        k.setNode('1', {'name':'comp1'})
+        k.setNode('2', {'name':'comp2'})
+        let nodes = k.nodes(true)
+        expect(nodes).to.deep.equal({"1":{"name":"comp1"},"2":{"name":"comp2"}})
     })
 
     it('should return true for existing node', () => {
@@ -56,8 +74,46 @@ describe('GraphTester', () => {
         expect(g.hasEdge('d','c')).to.be.false
     })
 
+    it('should return a value for an edge in the graph', () => {
+        expect(g.edge('a','b')).to.deep.equal({depType: "peer", semDist: 3})
+    })
 
+    it('should return correct numbe of graph edges', () => {
+        expect(g.edgeCount()).to.equal(8)
+    })
 
+    it('should return in edges', () => {
+        expect(g.inEdges('a')).to.deep.equal([
+            {"v":"f", "w":"a"},
+            {"v":"g", "w":"a"}
+        ])
+    })
 
+    it('should return out edges', () => {
+        expect(g.outEdges('c')).to.deep.equal([
+            {"v":"c", "w":"d"},
+            {"v":"c", "w":"e"}
+        ])
+    })
+
+    it('should return all node edges', () => {
+        expect(g.nodeEdges('c')).to.deep.equal([
+            {"v":"a", "w":"c"},
+            {"v":"c", "w":"d"},
+            {"v":"c", "w":"e"}
+        ])
+    })
+
+    it('should return all node predecessors', () => {
+        expect(g.predecessors('a')).to.deep.equal(['f','g'])
+    })
+
+    it('should return all node predecessors by edge label', () => {
+        expect(g.predecessors('a', {key: "depType", val:"dev"})).to.deep.equal(['g'])
+    })
+
+    it('should return all node predecessors by edge label with node info', () => {
+        expect(g.predecessors('a', {key: "depType", val:"dev"}, true)).to.deep.equal({"g" :{ packageDependencies: ["13", "14"] }})
+    })
   
 })
