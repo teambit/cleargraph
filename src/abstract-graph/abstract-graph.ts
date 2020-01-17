@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import { Graph as GraphLib} from 'graphlib/lib';
 
 export class Graph{
@@ -154,8 +155,11 @@ export class Graph{
             nodesToReturn
     }
 
-    neighbors(nodeKeys: string | string[], byEdgeLabels:string[]=[], returnNodeInfo:boolean=false){
-        return []
+    neighbors(nodeKey: string, byEdgeLabels:{key:string, val:string}={key:'', val:''}, returnNodeInfo:boolean=false){
+        return returnNodeInfo? //if so, returns object; else - array.
+            _.merge(this.predecessors(nodeKey, byEdgeLabels, returnNodeInfo), this.successors(nodeKey, byEdgeLabels, returnNodeInfo))
+            :
+            _.concat(this.predecessors(nodeKey, byEdgeLabels, returnNodeInfo), this.successors(nodeKey, byEdgeLabels, returnNodeInfo))
     }
 
     recursSuccessors(nodeKeys: string,

@@ -5,9 +5,11 @@
   "main": "index.js",
   "dependencies": {
     "@types/chai": "^4.2.7",
+    "@types/lodash": "^4.14.149",
     "@types/mocha": "^5.2.7",
     "chai": "^4.2.0",
     "graphlib": "^2.1.8",
+    "lodash": "^4.17.15",
     "ts-node": "^8.6.2",
     "typescript": "^3.7.4"
   },
