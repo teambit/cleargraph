@@ -123,7 +123,6 @@ export class Graph{
         }
         else{
             const inEdges = this.graph.inEdges(nodeKey)
-
             inEdges.forEach(edge => {
                 let edgeLablesObj = this.graph.edge(edge.v, edge.w)
                 if(this.objHasKeyValue(edgeLablesObj, byEdgeLabels.key, byEdgeLabels.val)){
@@ -136,8 +135,23 @@ export class Graph{
             nodesToReturn
     }
 
-    successors(nodeKeys: string, byEdgeLabels:string[]=[], returnNodeInfo:boolean=false){
-        return []
+    successors(nodeKey: string, byEdgeLabels:{key:string, val:string}={key:'', val:''}, returnNodeInfo:boolean=false){
+        let nodesToReturn: string[] = []
+        if(byEdgeLabels.key === '' && byEdgeLabels.key === ''){
+            nodesToReturn = this.graph.successors(nodeKey)
+        }
+        else{
+            const outEdges = this.graph.outEdges(nodeKey)
+            outEdges.forEach(edge => {
+                let edgeLablesObj = this.graph.edge(edge.v, edge.w)
+                if(this.objHasKeyValue(edgeLablesObj, byEdgeLabels.key, byEdgeLabels.val)){
+                    nodesToReturn.push(edge.w)}
+            })
+        }
+        return returnNodeInfo?
+            this.getNodeInfo(nodesToReturn)
+            :
+            nodesToReturn
     }
 
     neighbors(nodeKeys: string | string[], byEdgeLabels:string[]=[], returnNodeInfo:boolean=false){

@@ -115,5 +115,17 @@ describe('GraphTester', () => {
     it('should return all node predecessors by edge label with node info', () => {
         expect(g.predecessors('a', {key: "depType", val:"dev"}, true)).to.deep.equal({"g" :{ packageDependencies: ["13", "14"] }})
     })
+
+    it('should return all node successors', () => {
+        expect(g.successors('a')).to.deep.equal(['b','c'])
+    })
+
+    it('should return all node successors by edge label', () => {
+        expect(g.successors('a', {key: "depType", val:"dev"})).to.deep.equal(['c'])
+    })
+
+    it('should return all node predecessors by edge label with node info', () => {
+        expect(g.successors('a', {key: "depType", val:"dev"}, true)).to.deep.equal({"c": { packageDependencies: ["5", "6"] }})
+    })
   
 })
