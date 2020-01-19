@@ -162,25 +162,28 @@ export class Graph{
             _.concat(this.predecessors(nodeKey, byEdgeLabels, returnNodeInfo), this.successors(nodeKey, byEdgeLabels, returnNodeInfo))
     }
 
-    recursSuccessors(nodeKeys: string,
+    private innerRecurSuccessors(nodeKey: string,
+            successorsList: string[] = [],
+            visited: { [key: string]: boolean } = {}
+          ){  
+        const successors = this.graph.successors(nodeKey) || [];
+        if (successors.length > 0 && !visited[nodeKey]) {
+            successors.forEach((successor:string) => {
+            visited[nodeKey] = true;
+            successorsList.push(successor);
+    
+            return this.innerRecurSuccessors(successor, successorsList, visited);
+            });
+        }
+        return successorsList;
+    }
+
+    recursSuccessors(nodeKey: string,
                      byEdgeLabels:string[]=[],
                      returnNodeInfo:boolean=false,
                      returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
-                        // (
-                        //     bitId: string,
-                        //     successorsList: string[] = [],
-                        //     visited: { [key: string]: boolean } = {}
-                        //   ) 
-    //     const successors = this.successors(bitId) || [];
-    //     if (successors.length > 0 && !visited[bitId]) {
-    //         successors.forEach(successor => {
-    //         visited[bitId] = true;
-    //         successorsList.push(successor);
-    
-    //         return this.recursSuccessors(successor, successorsList, visited);
-    //         });
-    //     }
-    //     return successorsList;
+        //TODO: implement rest of params
+        return _.uniq(this.innerRecurSuccessors(nodeKey))              
      }
 
     recursPredecessors(nodeKeys: string | string[],
@@ -213,6 +216,4 @@ export class Graph{
     isMultigraph(){
         return this.graph,this.isMultigraph()
     }
-
 }
-

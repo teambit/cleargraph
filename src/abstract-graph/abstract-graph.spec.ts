@@ -141,5 +141,8 @@ describe('GraphTester', () => {
 
         })
     })
-  
+
+    it('should return all successors recursively for a node', () => {
+        expect(g.recursSuccessors('a')).to.deep.equal([ 'b', 'c', 'd', 'f', 'a', 'e' ])
+    })
 })
