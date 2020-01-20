@@ -1,49 +1,44 @@
 import { Graph } from '.'
 import { expect } from 'chai'
 
+type DepType = 'peer' | 'regular' | 'dev'
+type NodeData = { bitId: string, version: string}
+type EdgeData = { depType: DepType, semDist?: 1 | 2 | 3 }
+
 describe('GraphTester', () => {
-    let g = new Graph()
-    g.setNode("a", { packageDependencies: ["1", "2"] })
-    g.setNode("b", { packageDependencies: ["3", "4"] })
-    g.setNode("c", { packageDependencies: ["5", "6"] })
-    g.setNode("d", { packageDependencies: ["7", "8"] })
-    g.setNode("e", { packageDependencies: ["9", "10"] })
-    g.setNode("f", { packageDependencies: ["11", "12"] })
-    g.setNode("g", { packageDependencies: ["13", "14"] })
+    let g = new Graph<NodeData, EdgeData>()
+    g.setNode("a", { bitId: 'comp1', version: '1.0.0'})
+    g.setNode("b", { bitId: 'comp2', version: '2.0.0'})
+    g.setNode("c", { bitId: 'comp3', version: '1.0.1'})
+    g.setNode("d", { bitId: 'comp4', version: '15.0.0'})
+    g.setNode("e", { bitId: 'comp5', version: '3.0.0'})
+    g.setNode("f", { bitId: 'comp6', version: '2.0.0'})
+    g.setNode("g", { bitId: 'comp7', version: '2.0.0'})
     g.setEdge("a", "b", {depType: "peer", semDist: 3})
-    g.setEdge("a", "c", {depType: "dev", semDist: 1})
-    g.setEdge("c", "d", {depType: "package"})
-    g.setEdge("c", "e", {depType: "package", semDist: 2})
+    g.setEdge("a", "c", {depType: "dev", semDist: 3})
+    g.setEdge("c", "d", {depType: "regular"})
+    g.setEdge("c", "e", {depType: "regular", semDist: 2})
     g.setEdge("d", "f", {depType: "peer"})
     g.setEdge("e", "d", {depType: "dev"})
-    g.setEdge("f", "a", {depType: "package"})
+    g.setEdge("f", "a", {depType: "regular"})
     g.setEdge("g", "a", {depType: "dev", semDist: 1})
 
-
     it('should return node value', () => {
-        expect(g.node("b")).to.deep.equal({ packageDependencies: ["3", "4"] })
+        expect(g.node("b")).to.deep.equal({ bitId: 'comp2', version: '2.0.0'})
     })
 
     it('should get node info for a single node key', () => {
-        expect(g.getNodeInfo("a")).to.deep.equal({ "a": { packageDependencies: ["1", "2"] } })
+        expect(g.getNodeInfo("a")).to.deep.equal({ a: { bitId: 'comp1', version: '1.0.0'}})
     })
 
     it('should get node info for multiple node keys', () => {
         expect(g.getNodeInfo(["a","b"])).to.deep.equal(
-            { "a": { packageDependencies: ["1", "2"] },
-              "b": { packageDependencies: ["3", "4"] }})
+            { "a": { bitId: 'comp1', version: '1.0.0'},
+              "b": { bitId: 'comp2', version: '2.0.0'}})
     })
 
     it('should return graph nodes', () => {
         expect(g.nodes()).to.deep.equal([ 'a', 'b', 'c', 'd', 'e', 'f', 'g' ])
-    })
-
-    it('should return graph nodes and values', () => {
-        let k = new Graph()
-        k.setNode('1', {'name':'comp1'})
-        k.setNode('2', {'name':'comp2'})
-        let nodes = k.nodes(true)
-        expect(nodes).to.deep.equal({"1":{"name":"comp1"},"2":{"name":"comp2"}})
     })
 
     it('should return true for existing node', () => {
@@ -146,3 +141,14 @@ describe('GraphTester', () => {
         expect(g.recursSuccessors('a')).to.deep.equal([ 'b', 'c', 'd', 'f', 'a', 'e' ])
     })
 })
+
+function nodeFilterPredicate(nodeData: NodeData){}
+
+function edgeFilterByPackageDep(edgeData: EdgeData){
+    return (edgeData.depType === 'regular')
+}
+
+function edgeFilterByPackageOrDevDep(edgeData: EdgeData){
+    return (edgeData.depType === 'regular' || edgeData.depType === 'dev')
+}
+

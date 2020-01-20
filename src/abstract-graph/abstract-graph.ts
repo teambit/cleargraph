@@ -1,44 +1,41 @@
 import _ from 'lodash'
-import { Graph as GraphLib} from 'graphlib/lib';
+import { Graph as GraphLib} from 'graphlib/lib'
 
-export class Graph{
-    graph: GraphLib;
+export class Graph<N, E>{
+    graph: GraphLib
     constructor(directed:boolean=true, multigraph:boolean=true){
         this.graph = new GraphLib({directed:directed, multigraph:multigraph, compound:true})
         this.graph.setDefaultEdgeLabel({})
     }
 
-    setNode(key: string, value: any){
+    setNode(key: string, value: N){
         return this.graph.setNode(key, value)
     }
 
-    node(key:string){
+    node(key:string): N {
         return this.graph.node(key)
     }
 
-    getNodeInfo(nodeKeys:string | string[]){
+    getNodeInfo(nodeKeys:string | string[]): Record<string, N>{
         if(typeof(nodeKeys) === "string"){
             return {[nodeKeys]:this.graph.node(nodeKeys)}
         }
-        let graphObj: object = {}
+        let graphObj: Record<string, N> = {}
         nodeKeys.forEach(node => {
             graphObj[node] = this.graph.node(node)
         });
-         return graphObj
+        return graphObj
     }
 
-    private objHasKeyValue(obj: any, key:string, value:any) {
+    private objHasKeyValue(obj: any, key:string, value:any) : boolean {
         return obj.hasOwnProperty(key) && obj[key] === value;
     }
 
-    nodes(returnNodeInfo:boolean=false){
-        if(!!returnNodeInfo){
-            return this.getNodeInfo(this.graph.nodes())
-        }
+    nodes(): string[]{
         return this.graph.nodes()
     }
 
-    hasNode(key:string){
+    hasNode(key:string): boolean {
         return this.graph.hasNode(key)
     }
 
@@ -46,31 +43,28 @@ export class Graph{
         return this.graph.removeNode(key)
     }
 
-    nodeCount(){
+    nodeCount(): number {
         return this.graph.nodeCount()
     }
 
-    setDefaultNodeLabel(label:string){
-        return this.setDefaultNodeLabel(label)
-    }
-
-    filterNodes(fu: Function){
+    filterNodes(filterPredicate: (data: N) => boolean = returnTrue): string[]{
         //TODO
+        return []
     }
 
-    sources(){
+    sources(filterPredicate: (data: N) => boolean = returnTrue): string[]{
         return this.graph.sources()
     }
 
-    sinks(){
+    sinks(filterPredicate: (data: N) => boolean = returnTrue): string[]{
         return this.graph.sinks()
     }
 
-    setEdge(sourceKey: string,  tragetKey:string, labels: {}){
-        return this.graph.setEdge(sourceKey, tragetKey, labels)
+    setEdge<T>(sourceKey: string, tragetKey:string, data:T){
+        return this.graph.setEdge(sourceKey, tragetKey, data)
     }
 
-    hasEdge(sourceKey:string, targetKey:string){
+    hasEdge(sourceKey:string, targetKey:string): boolean {
         return this.graph.hasEdge(sourceKey, targetKey)
     }
 
@@ -78,7 +72,7 @@ export class Graph{
         return this.graph.edge(sourceKey, targetKey)
     }
 
-    edges(){
+    edges(filterPredicate: (data: E) => boolean = returnTrue){
         return this.graph.edges()
     }
 
@@ -86,40 +80,25 @@ export class Graph{
         return this.graph.removeEdge(sourceKey, targetKey)
     }
 
-    addEdgeLabel(labels: string | string[]){
-        //TODO
-    }
-
-    removeEdgeLabel(labels: string | string[]){
-        //TODO
-    }
-
-    edgeCount(){
+    edgeCount(filterPredicate: (data: E) => boolean): number{
         return this.graph.edgeCount()
     }
 
-    setDefaultEdgeLabel(val:string){
-        return this.graph.setDefaultEdgeLabel()
-    }
-
-    inEdges(nodeKey:string, returnEdgeInfo:boolean=false){
-        if(!!returnEdgeInfo){
-
-        }
+    inEdges(nodeKey:string, filterPredicate: (data: E) => boolean = returnTrue){
         return this.graph.inEdges(nodeKey)
     }
 
-    outEdges(nodeKey:string){
+    outEdges(nodeKey:string, filterPredicate: (data: E) => boolean = returnTrue){
         return this.graph.outEdges(nodeKey)
     }
 
-    nodeEdges(nodeKey:string){
+    nodeEdges(nodeKey:string, filterPredicate: (data: E) => boolean = returnTrue){
         return this.graph.nodeEdges(nodeKey)
     }
 
-    predecessors(nodeKey: string, byEdgeLabels:{key:string, val:string}={key:'', val:''}, returnNodeInfo:boolean=false){
+    predecessors(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
         let nodesToReturn: string[] = []
-        if(byEdgeLabels.key === '' && byEdgeLabels.key === ''){
+        if(byEdgeLabels.length === 0){
             nodesToReturn = this.graph.predecessors(nodeKey)
         }
         else{
@@ -130,15 +109,12 @@ export class Graph{
                     nodesToReturn.push(edge.v)}
             })
         }
-        return returnNodeInfo?
-            this.getNodeInfo(nodesToReturn)
-            :
-            nodesToReturn
+        return nodesToReturn
     }
 
-    successors(nodeKey: string, byEdgeLabels:{key:string, val:string}={key:'', val:''}, returnNodeInfo:boolean=false){
+    successors(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
         let nodesToReturn: string[] = []
-        if(byEdgeLabels.key === '' && byEdgeLabels.key === ''){
+        if(byEdgeLabels.length === 0){
             nodesToReturn = this.graph.successors(nodeKey)
         }
         else{
@@ -149,22 +125,17 @@ export class Graph{
                     nodesToReturn.push(edge.w)}
             })
         }
-        return returnNodeInfo?
-            this.getNodeInfo(nodesToReturn)
-            :
-            nodesToReturn
+        return nodesToReturn
     }
 
-    neighbors(nodeKey: string, byEdgeLabels:{key:string, val:string}={key:'', val:''}, returnNodeInfo:boolean=false){
-        return returnNodeInfo? //if so, returns object; else - array.
-            _.merge(this.predecessors(nodeKey, byEdgeLabels, returnNodeInfo), this.successors(nodeKey, byEdgeLabels, returnNodeInfo))
-            :
-            _.concat(this.predecessors(nodeKey, byEdgeLabels, returnNodeInfo), this.successors(nodeKey, byEdgeLabels, returnNodeInfo))
+    neighbors(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+        return _.concat(this.predecessors(nodeKey, byEdgeLabels, returnNodeInfo), this.successors(nodeKey, byEdgeLabels, returnNodeInfo))
     }
 
     private innerRecurSuccessors(nodeKey: string,
             successorsList: string[] = [],
-            visited: { [key: string]: boolean } = {}
+            visited: { [key: string]: boolean } = {},
+            filterPredicate: (data: E) => boolean = returnTrue
           ){  
         const successors = this.graph.successors(nodeKey) || [];
         if (successors.length > 0 && !visited[nodeKey]) {
@@ -179,17 +150,20 @@ export class Graph{
     }
 
     recursSuccessors(nodeKey: string,
-                     byEdgeLabels:string[]=[],
-                     returnNodeInfo:boolean=false,
-                     returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
-        //TODO: implement rest of params
-        return _.uniq(this.innerRecurSuccessors(nodeKey))              
+                    filterPredicate: (data: E) => boolean = returnTrue,
+                    returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
+        let nodesToReturn: any[] = []
+        if( returnStructure === 'flatList'){
+            nodesToReturn =_.uniq(this.innerRecurSuccessors(nodeKey))
+        }
+
+        return nodesToReturn
+
      }
 
-    recursPredecessors(nodeKeys: string | string[],
-        byEdgeLabels:string[]=[],
-        returnNodeInfo:boolean=false,
-        returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
+    recursPredecessors(nodeKey: string,
+                       filterPredicate: (data: E) => boolean = returnTrue,
+                       returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
         //TODO
     }
 
@@ -217,3 +191,5 @@ export class Graph{
         return this.graph,this.isMultigraph()
     }
 }
+
+function returnTrue(){ return true }
