@@ -164,19 +164,19 @@ describe('GraphTester', () => {
         expect(g.neighbors('a')).to.deep.equal(['g','b','c'])
     })
 
-    it.only('should return all node successors recursively as a graph', () => {
+    it('should return all node successors recursively as a graph', () => {
         expect(g.getSuccessorsGraphRecursively('a').nodes()).to.deep.equal([ 'a', 'b', 'c', 'd', 'f', 'e' ])
     })
 
-    it.only('should return all node successors recursively as a graph with filter function', () => {
+    it('should return all node successors recursively as a graph with filter function', () => {
         expect(g.getSuccessorsGraphRecursively('a', edgeFilterByDevDep).nodes()).to.deep.equal([ 'a', 'c' ])
     })
 
-    it('should return all node successors recursively as layers', () => {
+    it.only('should return all node successors recursively as layers', () => {
         expect(g.getSuccessorsLayersRecursively('a')).to.deep.equal([ 'b', 'c', 'd', 'f', 'a', 'e' ])
     })
 
-    it('should return all node successors recursively as layers with filter function', () => {
+    it.only('should return all node successors recursively as layers with filter function', () => {
         expect(g.getSuccessorsLayersRecursively('a', edgeFilterByDevDep)).to.deep.equal([ 'c' ])
     })
 

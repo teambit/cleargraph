@@ -194,7 +194,7 @@ export class Graph<N, E>{
                                  successorsList: string[] = [],
                                  visited: { [key: string]: boolean } = {},
                                  filterPredicate: (data: E) => boolean = returnTrue){  
-        const successors = this.graph.successors(nodeKey, filterPredicate) || [];
+        const successors = this.successors(nodeKey, filterPredicate) || [];
         if (successors.length > 0 && !visited[nodeKey]) {
             successors.forEach((successor:string) => {
             visited[nodeKey] = true;
@@ -223,7 +223,7 @@ export class Graph<N, E>{
 
 
     getSuccessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
-        return _.uniq(this.innerRecurSuccessorsArray(nodeKey))
+        return _.uniq(this.innerRecurSuccessorsArray(nodeKey, [], {}, filterPredicate))
      }
 
     getSuccessorsGraphRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
