@@ -40,6 +40,10 @@ describe('GraphTester', () => {
         expect(g.nodes()).to.deep.equal([ 'a', 'b', 'c', 'd', 'e', 'f', 'g' ])
     })
 
+    it('should return filtered nodes', () => {
+        expect(g.nodes(nodeFilterPredicateVersion)).to.deep.equal([ 'b', 'f', 'g' ])
+    })
+
     it('should return true for existing node', () => {
         expect(g.hasNode('c')).to.be.true
     })
@@ -52,12 +56,24 @@ describe('GraphTester', () => {
         expect(g.nodeCount()).to.equal(7)
     })
 
+    it('should return correct number of nodes in the graph with filter function', () => {
+        expect(g.nodeCount(nodeFilterPredicateVersion)).to.equal(3)
+    })
+
     it('should return correct sources', () => {
         expect(g.sources()).to.deep.equal(['g'])
     })
 
+    it('should return correct sources with filter function', () => {
+        expect(g.sources(nodeFilterPredicateComp)).to.deep.equal([])
+    })
+
     it('should return correct sinks', () => {
         expect(g.sinks()).to.deep.equal(['b', 'f'])
+    })
+
+    it('should return correct sinks with filter function', () => {
+        expect(g.sinks(nodeFilterPredicateComp)).to.deep.equal(['b'])
     })
 
     it('should return true for existing edge', () => {
@@ -121,11 +137,11 @@ describe('GraphTester', () => {
     })
 
     it('should return all node predecessors', () => {
-        expect(g.predecessors('a')).to.deep.equal(['f','g'])
+        expect(g.predecessors('a')).to.deep.equal(['g'])
     })
 
     it('should return all node predecessors by filter function', () => {
-        expect(g.predecessors('a', edgeFilterByRegularDep)).to.deep.equal(['f'])
+        expect(g.predecessors('d', edgeFilterByRegularDep)).to.deep.equal(['c'])
     })
 
     it('should return all node successors', () => {
@@ -145,7 +161,7 @@ describe('GraphTester', () => {
     })
 
     it('should return all neighbors for a given node', () => {
-        expect(g.neighbors('a')).to.deep.equal(['f','g','b','c'])
+        expect(g.neighbors('a')).to.deep.equal(['g','b','c'])
     })
 
     it('should return all successors recursively for a node', () => {
@@ -167,7 +183,13 @@ describe('GraphTester', () => {
 
 })
 
-function nodeFilterPredicate(nodeData: NodeData){}
+function nodeFilterPredicateVersion(nodeData: NodeData){
+    return (nodeData.version === '2.0.0')
+}
+
+function nodeFilterPredicateComp(nodeData: NodeData){
+    return (nodeData.bitId === 'comp2')
+}
 
 function edgeFilterByRegularDep(edgeData: EdgeData){
     return (edgeData.depType === 'regular')

@@ -31,8 +31,17 @@ export class Graph<N, E>{
         return obj.hasOwnProperty(key) && obj[key] === value;
     }
 
-    nodes(): string[]{
-        return this.graph.nodes()
+    nodes(filterPredicate?: (data: N) => boolean): string[]{
+        if(typeof(filterPredicate) === 'undefined'){
+            return this.graph.nodes()
+        }
+        let nodesToReturn: string[] = []
+        this.graph.nodes().forEach(node => {
+            let nodeData = this.graph.node(node)
+            if(filterPredicate(nodeData)){
+                nodesToReturn.push(node)}
+        })
+        return nodesToReturn
     }
 
     hasNode(key:string): boolean {
@@ -43,21 +52,37 @@ export class Graph<N, E>{
         return this.graph.removeNode(key)
     }
 
-    nodeCount(): number {
-        return this.graph.nodeCount()
-    }
-
-    filterNodes(filterPredicate: (data: N) => boolean = returnTrue): string[]{
-        //TODO
-        return []
+    nodeCount(filterPredicate?: (data: N) => boolean): number {
+        if (typeof(filterPredicate) === 'undefined'){
+            return this.graph.nodeCount()
+        }
+        return this.nodes(filterPredicate).length
     }
 
     sources(filterPredicate: (data: N) => boolean = returnTrue): string[]{
-        return this.graph.sources()
+        if (typeof(filterPredicate) === 'undefined'){
+            return this.graph.sources()
+        }
+        let nodesToReturn: string[] = []
+        this.graph.sources().forEach(node => {
+            let nodeData = this.graph.node(node)
+            if(filterPredicate(nodeData)){
+                nodesToReturn.push(node)}
+        })
+        return nodesToReturn
     }
 
     sinks(filterPredicate: (data: N) => boolean = returnTrue): string[]{
-        return this.graph.sinks()
+        if (typeof(filterPredicate) === 'undefined'){
+            return this.graph.sinks()
+        }
+        let nodesToReturn: string[] = []
+        this.graph.sinks().forEach(node => {
+            let nodeData = this.graph.node(node)
+            if(filterPredicate(nodeData)){
+                nodesToReturn.push(node)}
+        })
+        return nodesToReturn
     }
 
     setEdge<T>(sourceKey: string, tragetKey:string, data:T){
@@ -180,41 +205,29 @@ export class Graph<N, E>{
         return successorsList;
     }
 
-    GetSuccessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
-        let nodesToReturn: any[] = []
-        if( returnStructure === 'flatList'){
-            nodesToReturn =_.uniq(this.innerRecurSuccessors(nodeKey))
-        }
-
-        return nodesToReturn
-
+    GetSuccessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+        return _.uniq(this.innerRecurSuccessors(nodeKey))
      }
 
-    GetSuccessorsGraphRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
-        let nodesToReturn: any[] = []
-        if( returnStructure === 'flatList'){
-            nodesToReturn =_.uniq(this.innerRecurSuccessors(nodeKey))
-        }
-
-        return nodesToReturn
-
+    GetSuccessorsGraphRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+    
      }
     
-    GetSuccessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
-        let nodesToReturn: any[] = []
-        if( returnStructure === 'flatList'){
-            nodesToReturn =_.uniq(this.innerRecurSuccessors(nodeKey))
-        }
+    GetSuccessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+    
+    }
 
-        return nodesToReturn
-
+     GetPredecessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+        
      }
 
-    recursPredecessors(nodeKey: string,
-                       filterPredicate: (data: E) => boolean = returnTrue,
-                       returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
-        //TODO
+    GetPredecessorsGraphRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+    
     }
+    
+    GetPredecessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+      
+     }
 
     setGraphLabel(label:string){
         return this.graph.setGraph(label)
