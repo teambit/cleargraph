@@ -12,6 +12,5 @@ class SubClass extends AbstractClass<boolean> {
      
 }
 
-
 const mySubInstance = new SubClass(true);
 mySubInstance.data;

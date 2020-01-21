@@ -20,7 +20,6 @@ describe('GraphTester', () => {
     g.setEdge("c", "e", {depType: "regular", semDist: 2})
     g.setEdge("d", "f", {depType: "peer"})
     g.setEdge("e", "d", {depType: "dev"})
-    g.setEdge("f", "a", {depType: "regular"})
     g.setEdge("g", "a", {depType: "dev", semDist: 1})
 
     it('should return node value', () => {
@@ -58,7 +57,7 @@ describe('GraphTester', () => {
     })
 
     it('should return correct sinks', () => {
-        expect(g.sinks()).to.deep.equal(['b'])
+        expect(g.sinks()).to.deep.equal(['b', 'f'])
     })
 
     it('should return true for existing edge', () => {
@@ -73,14 +72,23 @@ describe('GraphTester', () => {
         expect(g.edge('a','b')).to.deep.equal({depType: "peer", semDist: 3})
     })
 
-    it('should return correct numbe of graph edges', () => {
-        expect(g.edgeCount()).to.equal(8)
+    it('should return correct number of graph edges', () => {
+        expect(g.edgeCount()).to.equal(7)
+    })
+
+    it('should return correct number of graph edges with filter function', () => {
+        expect(g.edgeCount(edgeFilterByDevDep)).to.equal(3)
     })
 
     it('should return in edges', () => {
         expect(g.inEdges('a')).to.deep.equal([
-            {"v":"f", "w":"a"},
             {"v":"g", "w":"a"}
+        ])
+    })
+
+    it('should return only in edges that pass filter function', () => {
+        expect(g.inEdges('d', edgeFilterByRegularDep)).to.deep.equal([
+            {"v":"c", "w":"d"}
         ])
     })
 
@@ -88,6 +96,12 @@ describe('GraphTester', () => {
         expect(g.outEdges('c')).to.deep.equal([
             {"v":"c", "w":"d"},
             {"v":"c", "w":"e"}
+        ])
+    })
+
+    it('should return only out edges that pass filter function', () => {
+        expect(g.outEdges('a', edgeFilterByDevDep)).to.deep.equal([
+            {"v":"a", "w":"c"}
         ])
     })
 
@@ -99,56 +113,79 @@ describe('GraphTester', () => {
         ])
     })
 
+    it('should return only node edges that pass filter function', () => {
+        expect(g.nodeEdges('a', edgeFilterByDevDep)).to.deep.equal([
+            {"v":"g", "w":"a"},
+            {"v":"a", "w":"c"}
+        ])
+    })
+
     it('should return all node predecessors', () => {
         expect(g.predecessors('a')).to.deep.equal(['f','g'])
     })
 
-    it('should return all node predecessors by edge label', () => {
-        expect(g.predecessors('a', {key: "depType", val:"dev"})).to.deep.equal(['g'])
-    })
-
-    it('should return all node predecessors by edge label with node info', () => {
-        expect(g.predecessors('a', {key: "depType", val:"dev"}, true)).to.deep.equal({"g" :{ packageDependencies: ["13", "14"] }})
+    it('should return all node predecessors by filter function', () => {
+        expect(g.predecessors('a', edgeFilterByRegularDep)).to.deep.equal(['f'])
     })
 
     it('should return all node successors', () => {
         expect(g.successors('a')).to.deep.equal(['b','c'])
     })
 
-    it('should return all node successors by edge label', () => {
-        expect(g.successors('a', {key: "depType", val:"dev"})).to.deep.equal(['c'])
+    it('should return all node successors by filter function - one dep type', () => {
+        expect(g.successors('a', edgeFilterByPeerDep)).to.deep.equal(['b'])
     })
 
-    it('should return all node predecessors by edge label with node info', () => {
-        expect(g.successors('a', {key: "depType", val:"dev"}, true)).to.deep.equal({"c": { packageDependencies: ["5", "6"] }})
+    it('should return empty successors by filter function - foreign dep type', () => {
+        expect(g.successors('a', edgeFilterByRegularDep)).to.deep.equal([])
     })
 
-    it('should return all neighbors for a given node without node info', () => {
+    it('should return all node successors by filter function - two dep types', () => {
+        expect(g.successors('a', edgeFilterByPeerOrDevDep)).to.deep.equal(['b','c'])
+    })
+
+    it('should return all neighbors for a given node', () => {
         expect(g.neighbors('a')).to.deep.equal(['f','g','b','c'])
-    })
-
-    it('should return all neighbors for a given node with node info', () => {
-        expect(g.neighbors('a',{key:'',val:''}, true)).to.deep.equal({
-            "f": { packageDependencies: ["11", "12"] },
-            "g": { packageDependencies: ["13", "14"] },
-            "b": { packageDependencies: ["3", "4"] },
-            "c": { packageDependencies: ["5", "6"] }
-
-        })
     })
 
     it('should return all successors recursively for a node', () => {
         expect(g.recursSuccessors('a')).to.deep.equal([ 'b', 'c', 'd', 'f', 'a', 'e' ])
     })
+
+    it('should return all successors recursively for a node with filter function - one dep type', () => {
+        expect(g.recursSuccessors('a', edgeFilterByDevDep)).to.deep.equal([ 'c' ])
+    })
+
+    it('should return all successors recursively for a node with filter function - two dep types', () => {
+        expect(g.recursSuccessors('a', edgeFilterByRegularOrDevDep)).to.deep.equal([ 'c', 'e', 'd' ])
+    })
+
+    it('should throw error for circular dependencies', () => {
+        g.setEdge("f", "a", {depType: "regular"}) // adding a circular dependency
+        expect(g.successors('a', edgeFilterByPeerOrDevDep)).to.deep.equal(['b','c'])
+    })
+
 })
 
 function nodeFilterPredicate(nodeData: NodeData){}
 
-function edgeFilterByPackageDep(edgeData: EdgeData){
+function edgeFilterByRegularDep(edgeData: EdgeData){
     return (edgeData.depType === 'regular')
 }
 
-function edgeFilterByPackageOrDevDep(edgeData: EdgeData){
+function edgeFilterByDevDep(edgeData: EdgeData){
+    return (edgeData.depType === 'dev')
+}
+
+function edgeFilterByPeerDep(edgeData: EdgeData){
+    return (edgeData.depType === 'peer')
+}
+
+function edgeFilterByPeerOrDevDep(edgeData: EdgeData){
+    return (edgeData.depType === 'peer' || edgeData.depType === 'dev')
+}
+
+function edgeFilterByRegularOrDevDep(edgeData: EdgeData){
     return (edgeData.depType === 'regular' || edgeData.depType === 'dev')
 }
 

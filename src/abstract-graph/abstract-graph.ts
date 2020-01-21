@@ -72,86 +72,135 @@ export class Graph<N, E>{
         return this.graph.edge(sourceKey, targetKey)
     }
 
-    edges(filterPredicate: (data: E) => boolean = returnTrue){
-        return this.graph.edges()
+    edges(filterPredicate?: (data: E) => boolean){
+        if(typeof(filterPredicate) === 'undefined'){
+            return this.graph.edges()
+        }
+        const edges = this.graph.edges()
+        let edgesToReturn: string[] = []
+        edges.forEach(edge => {
+            let edgeData = this.graph.edge(edge.v, edge.w)
+            if(filterPredicate(edgeData)){
+                edgesToReturn.push(edge)}
+        })
+        return edgesToReturn
     }
 
     removeEdge(sourceKey:string, targetKey:string){
         return this.graph.removeEdge(sourceKey, targetKey)
     }
 
-    edgeCount(filterPredicate: (data: E) => boolean): number{
-        return this.graph.edgeCount()
+    edgeCount(filterPredicate?: (data: E) => boolean): number{
+        if(typeof(filterPredicate) === 'undefined'){
+            return this.graph.edgeCount()
+        }
+        return this.edges(filterPredicate).length
     }
 
-    inEdges(nodeKey:string, filterPredicate: (data: E) => boolean = returnTrue){
-        return this.graph.inEdges(nodeKey)
+    inEdges(nodeKey:string, filterPredicate?: (data: E) => boolean){
+        if(typeof(filterPredicate) === 'undefined'){
+            return this.graph.inEdges(nodeKey)
+        }
+        const inEdges = this.graph.inEdges(nodeKey)
+        let edgesToReturn: string[] = []
+        inEdges.forEach(edge => {
+            let edgeData = this.graph.edge(edge.v, edge.w)
+            if(filterPredicate(edgeData)){
+                edgesToReturn.push(edge)}
+        })
+        return edgesToReturn
     }
 
-    outEdges(nodeKey:string, filterPredicate: (data: E) => boolean = returnTrue){
-        return this.graph.outEdges(nodeKey)
+    outEdges(nodeKey:string, filterPredicate?: (data: E) => boolean){
+        if(typeof(filterPredicate) === 'undefined'){
+            return this.graph.outEdges(nodeKey)
+        }
+        const outEdges = this.graph.outEdges(nodeKey)
+        let edgesToReturn: string[] = []
+        outEdges.forEach(edge => {
+            let edgeData = this.graph.edge(edge.v, edge.w)
+            if(filterPredicate(edgeData)){
+                edgesToReturn.push(edge)}
+        })
+        return edgesToReturn
     }
 
-    nodeEdges(nodeKey:string, filterPredicate: (data: E) => boolean = returnTrue){
-        return this.graph.nodeEdges(nodeKey)
+    nodeEdges(nodeKey:string, filterPredicate?: (data: E) => boolean){
+        if(typeof(filterPredicate) === 'undefined'){
+            return this.graph.nodeEdges(nodeKey)
+        }
+        const nodeEdges = this.graph.nodeEdges(nodeKey)
+        let edgesToReturn: string[] = []
+        nodeEdges.forEach(edge => {
+            let edgeData = this.graph.edge(edge.v, edge.w)
+            if(filterPredicate(edgeData)){
+                edgesToReturn.push(edge)}
+        })
+        return edgesToReturn
     }
 
     predecessors(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
         let nodesToReturn: string[] = []
-        if(byEdgeLabels.length === 0){
-            nodesToReturn = this.graph.predecessors(nodeKey)
-        }
-        else{
-            const inEdges = this.graph.inEdges(nodeKey)
-            inEdges.forEach(edge => {
-                let edgeLablesObj = this.graph.edge(edge.v, edge.w)
-                if(this.objHasKeyValue(edgeLablesObj, byEdgeLabels.key, byEdgeLabels.val)){
-                    nodesToReturn.push(edge.v)}
-            })
-        }
+        const inEdges = this.graph.inEdges(nodeKey)
+        inEdges.forEach(edge => {
+            let edgeData = this.graph.edge(edge.v, edge.w)
+            if(filterPredicate(edgeData)){
+                nodesToReturn.push(edge.v)}
+        })
         return nodesToReturn
     }
 
     successors(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
         let nodesToReturn: string[] = []
-        if(byEdgeLabels.length === 0){
-            nodesToReturn = this.graph.successors(nodeKey)
-        }
-        else{
-            const outEdges = this.graph.outEdges(nodeKey)
-            outEdges.forEach(edge => {
-                let edgeLablesObj = this.graph.edge(edge.v, edge.w)
-                if(this.objHasKeyValue(edgeLablesObj, byEdgeLabels.key, byEdgeLabels.val)){
-                    nodesToReturn.push(edge.w)}
-            })
-        }
+        const outEdges = this.graph.outEdges(nodeKey)
+        outEdges.forEach(edge => {
+            let edgeData = this.graph.edge(edge.v, edge.w)
+            if(filterPredicate(edgeData)){
+                nodesToReturn.push(edge.w)}
+        })
         return nodesToReturn
     }
 
     neighbors(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
-        return _.concat(this.predecessors(nodeKey, byEdgeLabels, returnNodeInfo), this.successors(nodeKey, byEdgeLabels, returnNodeInfo))
+        return _.concat(this.predecessors(nodeKey, filterPredicate), this.successors(nodeKey, filterPredicate))
     }
 
     private innerRecurSuccessors(nodeKey: string,
-            successorsList: string[] = [],
-            visited: { [key: string]: boolean } = {},
-            filterPredicate: (data: E) => boolean = returnTrue
-          ){  
-        const successors = this.graph.successors(nodeKey) || [];
+                                 successorsList: string[] = [],
+                                 visited: { [key: string]: boolean } = {},
+                                 filterPredicate: (data: E) => boolean = returnTrue){  
+        const successors = this.graph.successors(nodeKey, filterPredicate) || [];
         if (successors.length > 0 && !visited[nodeKey]) {
             successors.forEach((successor:string) => {
             visited[nodeKey] = true;
             successorsList.push(successor);
-    
-            return this.innerRecurSuccessors(successor, successorsList, visited);
+            return this.innerRecurSuccessors(successor, successorsList, visited, filterPredicate);
             });
         }
         return successorsList;
     }
 
-    recursSuccessors(nodeKey: string,
-                    filterPredicate: (data: E) => boolean = returnTrue,
-                    returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
+    GetSuccessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
+        let nodesToReturn: any[] = []
+        if( returnStructure === 'flatList'){
+            nodesToReturn =_.uniq(this.innerRecurSuccessors(nodeKey))
+        }
+
+        return nodesToReturn
+
+     }
+
+    GetSuccessorsGraphRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
+        let nodesToReturn: any[] = []
+        if( returnStructure === 'flatList'){
+            nodesToReturn =_.uniq(this.innerRecurSuccessors(nodeKey))
+        }
+
+        return nodesToReturn
+
+     }
+    
+    GetSuccessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, returnStructure: 'flatList' | 'subGraph' | 'layers'='flatList'){
         let nodesToReturn: any[] = []
         if( returnStructure === 'flatList'){
             nodesToReturn =_.uniq(this.innerRecurSuccessors(nodeKey))
