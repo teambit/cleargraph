@@ -164,21 +164,43 @@ describe('GraphTester', () => {
         expect(g.neighbors('a')).to.deep.equal(['g','b','c'])
     })
 
-    it('should return all successors recursively for a node', () => {
-        expect(g.recursSuccessors('a')).to.deep.equal([ 'b', 'c', 'd', 'f', 'a', 'e' ])
+    it.only('should return all node successors recursively as a graph', () => {
+        expect(g.getSuccessorsGraphRecursively('a').nodes()).to.deep.equal([ 'a', 'b', 'c', 'd', 'f', 'e' ])
     })
 
-    it('should return all successors recursively for a node with filter function - one dep type', () => {
-        expect(g.recursSuccessors('a', edgeFilterByDevDep)).to.deep.equal([ 'c' ])
+    it.only('should return all node successors recursively as a graph with filter function', () => {
+        expect(g.getSuccessorsGraphRecursively('a', edgeFilterByDevDep).nodes()).to.deep.equal([ 'a', 'c' ])
     })
 
-    it('should return all successors recursively for a node with filter function - two dep types', () => {
-        expect(g.recursSuccessors('a', edgeFilterByRegularOrDevDep)).to.deep.equal([ 'c', 'e', 'd' ])
+    it('should return all node successors recursively as layers', () => {
+        expect(g.getSuccessorsLayersRecursively('a')).to.deep.equal([ 'b', 'c', 'd', 'f', 'a', 'e' ])
     })
 
-    it('should throw error for circular dependencies', () => {
-        g.setEdge("f", "a", {depType: "regular"}) // adding a circular dependency
-        expect(g.successors('a', edgeFilterByPeerOrDevDep)).to.deep.equal(['b','c'])
+    it('should return all node successors recursively as layers with filter function', () => {
+        expect(g.getSuccessorsLayersRecursively('a', edgeFilterByDevDep)).to.deep.equal([ 'c' ])
+    })
+
+    it('should return all node successors recursively as an array', () => {
+        expect(g.getSuccessorsArrayRecursively('a')).to.deep.equal([ 'b', 'c', 'd', 'f', 'e' ])
+    })
+
+    it('should return all node successors recursively as an array with filter function', () => {
+        expect(g.getSuccessorsArrayRecursively('a', edgeFilterByDevDep)).to.deep.equal([ 'c' ])
+    })
+
+    it('should throw error for circular dependencies for successors as graph', () => {
+        g.setEdge("f", "a", {depType: "regular"})
+        expect(g.getSuccessorsGraphRecursively('a', edgeFilterByPeerOrDevDep)).to.deep.equal(['b','c'])
+    })
+
+    it('should throw error for circular dependencies for successors as layers', () => {
+        g.setEdge("f", "a", {depType: "regular"})
+        expect(g.getSuccessorsLayersRecursively('a', edgeFilterByPeerOrDevDep)).to.deep.equal(['b','c'])
+    })
+
+    it('should throw error for circular dependencies for successors as an array', () => {
+        g.setEdge("f", "a", {depType: "regular"})
+        expect(g.getSuccessorsArrayRecursively('a', edgeFilterByPeerOrDevDep)).to.deep.equal(['b','c'])
     })
 
 })

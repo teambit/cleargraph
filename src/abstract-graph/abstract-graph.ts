@@ -27,9 +27,9 @@ export class Graph<N, E>{
         return graphObj
     }
 
-    private objHasKeyValue(obj: any, key:string, value:any) : boolean {
-        return obj.hasOwnProperty(key) && obj[key] === value;
-    }
+    // private objHasKeyValue(obj: any, key:string, value:any) : boolean {
+    //     return obj.hasOwnProperty(key) && obj[key] === value;
+    // }
 
     nodes(filterPredicate?: (data: N) => boolean): string[]{
         if(typeof(filterPredicate) === 'undefined'){
@@ -190,7 +190,7 @@ export class Graph<N, E>{
         return _.concat(this.predecessors(nodeKey, filterPredicate), this.successors(nodeKey, filterPredicate))
     }
 
-    private innerRecurSuccessors(nodeKey: string,
+    private innerRecurSuccessorsArray(nodeKey: string,
                                  successorsList: string[] = [],
                                  visited: { [key: string]: boolean } = {},
                                  filterPredicate: (data: E) => boolean = returnTrue){  
@@ -199,33 +199,54 @@ export class Graph<N, E>{
             successors.forEach((successor:string) => {
             visited[nodeKey] = true;
             successorsList.push(successor);
-            return this.innerRecurSuccessors(successor, successorsList, visited, filterPredicate);
+            return this.innerRecurSuccessorsArray(successor, successorsList, visited, filterPredicate);
             });
         }
         return successorsList;
     }
 
-    GetSuccessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
-        return _.uniq(this.innerRecurSuccessors(nodeKey))
+    private innerRecurSuccessorsGraph(nodeKey: string,
+                                 successorsGraph: Graph<N,E>,
+                                 visited: { [key: string]: boolean } = {},
+                                 filterPredicate: (data: E) => boolean = returnTrue){  
+        const successors = this.successors(nodeKey, filterPredicate) || [];
+        if (successors.length > 0 && !visited[nodeKey]) {
+            successors.forEach((successor:string) => {
+                visited[nodeKey] = true;
+                successorsGraph.setNode(successor, this.graph.node(successor));
+                successorsGraph.setEdge(nodeKey, successor, this.graph.edge(nodeKey, successor))
+                return this.innerRecurSuccessorsGraph(successor, successorsGraph, visited, filterPredicate);
+            });
+        }
+        return successorsGraph;
+    }
+
+
+    getSuccessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+        return _.uniq(this.innerRecurSuccessorsArray(nodeKey))
      }
 
-    GetSuccessorsGraphRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+    getSuccessorsGraphRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+        // also returns the original nodeKey as part of the returned sub-graph
+        let g = new Graph<N,E>()
+        g.setNode(nodeKey, this.graph.node(nodeKey))
+        let i = this.innerRecurSuccessorsGraph(nodeKey, g, {}, filterPredicate)
+        return this.innerRecurSuccessorsGraph(nodeKey, g, {}, filterPredicate)
+    }
     
-     }
-    
-    GetSuccessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+    getSuccessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
     
     }
 
-     GetPredecessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+    getPredecessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
         
      }
 
-    GetPredecessorsGraphRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+    getPredecessorsGraphRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
     
     }
     
-    GetPredecessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+    getPredecessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
       
      }
 
