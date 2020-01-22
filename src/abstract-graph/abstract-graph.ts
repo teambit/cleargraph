@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import { Graph as GraphLib} from 'graphlib/lib'
+import { isAcyclic } from 'graphlib/lib/alg'
 
 export class Graph<N, E>{
     graph: GraphLib
@@ -221,7 +222,7 @@ export class Graph<N, E>{
                                  layers: string[][],
                                  floor: number,
                                  filterPredicate: (data: E) => boolean = returnTrue){  
-        if (layers[floor].length > 0) {
+        if (nodeKeys.length > 0) {
             let nextFloor = floor + 1
             layers.push([])
             layers[floor].forEach((successor:string) => {
@@ -240,10 +241,15 @@ export class Graph<N, E>{
         // also returns the original nodeKey as part of the returned sub-graph
         let g = new Graph<N,E>()
         g.setNode(nodeKey, this.graph.node(nodeKey))
+        let i = this.innerRecurSuccessorsGraph(nodeKey, g, {}, filterPredicate)
         return this.innerRecurSuccessorsGraph(nodeKey, g, {}, filterPredicate)
     }
     
-    getSuccessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, order:'fromSource' | 'fromLastLeaf'= 'fromSource'): string[][]{
+    getSuccessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, order:'fromSource' | 'fromLastLeaf'= 'fromSource'): string[][] | never {
+        let successorsGraph = this.getSuccessorsGraphRecursively(nodeKey, filterPredicate)
+        if(!isAcyclic(successorsGraph)){
+            throw new Error("cyclic dependency")
+        }
         let layers: string[][] = []
         layers[0]=[nodeKey]
         let floor = 0

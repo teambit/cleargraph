@@ -211,21 +211,16 @@ describe('GraphTester', () => {
         expect(g.getSuccessorsArrayRecursively('a', edgeFilterByDevDep)).to.deep.equal([ 'c' ])
     })
 
-    xit('should throw error for circular dependencies for successors as graph', () => {
+    it('should throw error for circular dependencies for successors as layers', () => {
         g.setEdge("f", "a", {depType: "regular"})
-        expect(g.getSuccessorsGraphRecursively('a')).to.deep.equal(['b','c'])
+        try{
+            g.getSuccessorsLayersRecursively('a')
+        } catch(e){
+            expect(e.message).to.equal('cyclic dependency')
+            return
+        } 
+        expect.fail('should have thrown exception')
     })
-
-    xit('should throw error for circular dependencies for successors as layers', () => {
-        g.setEdge("f", "a", {depType: "regular"})
-        expect(g.getSuccessorsLayersRecursively('a')).to.deep.equal(['b','c'])
-    })
-
-    xit('should throw error for circular dependencies for successors as an array', () => {
-        g.setEdge("f", "a", {depType: "regular"})
-        expect(g.getSuccessorsArrayRecursively('a')).to.deep.equal(['b','c'])
-    })
-
 })
 
 function nodeFilterPredicateVersion(nodeData: NodeData){
