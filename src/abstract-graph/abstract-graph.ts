@@ -3,7 +3,7 @@ import { Graph as GraphLib} from 'graphlib/lib'
 
 export class Graph<N, E>{
     graph: GraphLib
-    constructor(directed:boolean=true, multigraph:boolean=true){
+    constructor(directed=true, multigraph=true){
         this.graph = new GraphLib({directed:directed, multigraph:multigraph, compound:true})
         this.graph.setDefaultEdgeLabel({})
     }
@@ -26,10 +26,6 @@ export class Graph<N, E>{
         });
         return graphObj
     }
-
-    // private objHasKeyValue(obj: any, key:string, value:any) : boolean {
-    //     return obj.hasOwnProperty(key) && obj[key] === value;
-    // }
 
     nodes(filterPredicate?: (data: N) => boolean): string[]{
         if(typeof(filterPredicate) === 'undefined'){
@@ -221,21 +217,38 @@ export class Graph<N, E>{
         return successorsGraph;
     }
 
+    private innerRecurSuccessorsLayers(nodeKeys: string[],
+                                 layers: string[][],
+                                 floor: number,
+                                 filterPredicate: (data: E) => boolean = returnTrue){  
+        if (layers[floor].length > 0) {
+            let nextFloor = floor + 1
+            layers.push([])
+            layers[floor].forEach((successor:string) => {
+                layers[nextFloor] = layers[nextFloor].concat(this.successors(successor, filterPredicate))
+            });
+            return this.innerRecurSuccessorsLayers(layers[nextFloor], layers, nextFloor, filterPredicate)
+        }
+        return layers;
+    }
 
-    getSuccessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+    getSuccessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue): string[]{
         return _.uniq(this.innerRecurSuccessorsArray(nodeKey, [], {}, filterPredicate))
      }
 
-    getSuccessorsGraphRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
+    getSuccessorsGraphRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue): Graph<N,E>{
         // also returns the original nodeKey as part of the returned sub-graph
         let g = new Graph<N,E>()
         g.setNode(nodeKey, this.graph.node(nodeKey))
-        let i = this.innerRecurSuccessorsGraph(nodeKey, g, {}, filterPredicate)
         return this.innerRecurSuccessorsGraph(nodeKey, g, {}, filterPredicate)
     }
     
-    getSuccessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
-    
+    getSuccessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, order:'fromSource' | 'fromLastLeaf'= 'fromSource'): string[][]{
+        let layers: string[][] = []
+        layers[0]=[nodeKey]
+        let floor = 0
+        let rawLayers = this.innerRecurSuccessorsLayers([nodeKey], layers, floor, filterPredicate)
+        return arrangeLayers(rawLayers, order)
     }
 
     getPredecessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
@@ -276,3 +289,23 @@ export class Graph<N, E>{
 }
 
 function returnTrue(){ return true }
+
+function arrangeLayers(layers:string[][], order: 'fromSource' | 'fromLastLeaf'){
+    let finalLayers: string[][] = []
+    let seenNodes:string[] = []
+    layers = layers.reverse()
+    let i = 0
+    layers.forEach(layer => {
+        if(layer.length > 0){
+            finalLayers.push([])
+            layer.forEach(node => {
+                if(seenNodes.indexOf(node) == -1){ //if node not seen
+                    seenNodes.push(node)
+                    finalLayers[i].push(node)
+                }           
+            })
+        i++
+    }
+    });
+   return order === 'fromSource' ? finalLayers.reverse() : finalLayers
+}
