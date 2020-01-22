@@ -211,6 +211,22 @@ describe('GraphTester', () => {
         expect(g.getSuccessorsArrayRecursively('a', edgeFilterByDevDep)).to.deep.equal([ 'c' ])
     })
 
+    it('should return all node predecessors recursively as an array', () => {
+        expect(g.getPredecessorsArrayRecursively('c')).to.deep.equal([ 'a', 'g' ])
+    })
+
+    it('should return all node predecessors recursively as a graph', () => {
+        expect(g.getPredecessorsGraphRecursively('d').nodes()).to.deep.equal([ 'd', 'c', 'a', 'g', 'e' ])
+    })
+
+    it('should return all node predecessors recursively as a graph with filter function', () => {
+        expect(g.getPredecessorsGraphRecursively('d', edgeFilterByDevDep).nodes()).to.deep.equal([ 'd', 'e' ])
+    })
+
+    it('should return all node predecessors recursively as layers - version 1', () => {
+        expect(g.getPredecessorsLayersRecursively('d')).to.deep.equal([["d"],["e"],["c"],["a"],["g"]])
+    })
+
     it('should throw error for circular dependencies for successors as layers', () => {
         g.setEdge("f", "a", {depType: "regular"})
         try{
@@ -221,6 +237,7 @@ describe('GraphTester', () => {
         } 
         expect.fail('should have thrown exception')
     })
+
 })
 
 function nodeFilterPredicateVersion(nodeData: NodeData){
@@ -246,8 +263,3 @@ function edgeFilterByPeerDep(edgeData: EdgeData){
 function edgeFilterByPeerOrDevDep(edgeData: EdgeData){
     return (edgeData.depType === 'peer' || edgeData.depType === 'dev')
 }
-
-function edgeFilterByRegularOrDevDep(edgeData: EdgeData){
-    return (edgeData.depType === 'regular' || edgeData.depType === 'dev')
-}
-

@@ -241,7 +241,6 @@ export class Graph<N, E>{
         // also returns the original nodeKey as part of the returned sub-graph
         let g = new Graph<N,E>()
         g.setNode(nodeKey, this.graph.node(nodeKey))
-        let i = this.innerRecurSuccessorsGraph(nodeKey, g, {}, filterPredicate)
         return this.innerRecurSuccessorsGraph(nodeKey, g, {}, filterPredicate)
     }
     
@@ -257,16 +256,73 @@ export class Graph<N, E>{
         return arrangeLayers(rawLayers, order)
     }
 
-    getPredecessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
-        
+    private innerRecurPredecessorsArray(nodeKey: string,
+                                 predecessorsList: string[] = [],
+                                 visited: { [key: string]: boolean } = {},
+                                 filterPredicate: (data: E) => boolean = returnTrue){  
+        const predecessors = this.predecessors(nodeKey, filterPredicate) || [];
+        if (predecessors.length > 0 && !visited[nodeKey]) {
+            predecessors.forEach((predecessor:string) => {
+            visited[nodeKey] = true;
+            predecessorsList.push(predecessor);
+            return this.innerRecurPredecessorsArray(predecessor, predecessorsList, visited, filterPredicate);
+            });
+        }
+        return predecessorsList;
+    }
+
+    private innerRecurPredecessorsGraph(nodeKey: string,
+                                 predecessorsGraph: Graph<N,E>,
+                                 visited: { [key: string]: boolean } = {},
+                                 filterPredicate: (data: E) => boolean = returnTrue){  
+        const predecessors = this.predecessors(nodeKey, filterPredicate) || [];
+        if (predecessors.length > 0 && !visited[nodeKey]) {
+            predecessors.forEach((predecessor:string) => {
+                visited[nodeKey] = true;
+                predecessorsGraph.setNode(predecessor, this.graph.node(predecessor));
+                predecessorsGraph.setEdge(nodeKey, predecessor, this.graph.edge(nodeKey, predecessor))
+                return this.innerRecurPredecessorsGraph(predecessor, predecessorsGraph, visited, filterPredicate);
+            });
+        }
+        return predecessorsGraph;
+    }
+
+    private innerRecurPredecessorsLayers(nodeKeys: string[],
+                                 layers: string[][],
+                                 floor: number,
+                                 filterPredicate: (data: E) => boolean = returnTrue){  
+        if (nodeKeys.length > 0) {
+            let nextFloor = floor + 1
+            layers.push([])
+            layers[floor].forEach((predecessor:string) => {
+                layers[nextFloor] = layers[nextFloor].concat(this.predecessors(predecessor, filterPredicate))
+            });
+            return this.innerRecurPredecessorsLayers(layers[nextFloor], layers, nextFloor, filterPredicate)
+        }
+        return layers;
+    }
+
+    getPredecessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue): string[]{
+        return _.uniq(this.innerRecurPredecessorsArray(nodeKey, [], {}, filterPredicate))
      }
 
-    getPredecessorsGraphRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
-    
+    getPredecessorsGraphRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue): Graph<N,E> {
+        // also returns the original nodeKey as part of the returned sub-graph
+        let g = new Graph<N,E>()
+        g.setNode(nodeKey, this.graph.node(nodeKey))
+        return this.innerRecurPredecessorsGraph(nodeKey, g, {}, filterPredicate)
     }
     
-    getPredecessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
-      
+    getPredecessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, order:'fromSource' | 'fromLastLeaf'= 'fromSource'): string[][] | never {
+        let successorsGraph = this.getPredecessorsGraphRecursively(nodeKey, filterPredicate) // first getting as a graph to check if cyclic
+        if(!isAcyclic(successorsGraph)){
+            throw new Error("cyclic sub-graph")
+        }
+        let layers: string[][] = []
+        layers[0]=[nodeKey]
+        let floor = 0
+        let rawLayers = this.innerRecurPredecessorsLayers([nodeKey], layers, floor, filterPredicate)
+        return arrangeLayers(rawLayers, order)
      }
 
     setGraphLabel(label:string){
