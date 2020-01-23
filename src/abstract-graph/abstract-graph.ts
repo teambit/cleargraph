@@ -459,7 +459,7 @@ export class Graph<N, E>{
      * This function returns an array of all nodes in the graph such that for each edge u -> v, u appears before v in the array. 
      * If the graph has a cycle it is impossible to generate such a list and CycleException is thrown.
      */
-    toposort(){
+    toposort(): string[] {
         return (topsort(this.graph))
     }
 
