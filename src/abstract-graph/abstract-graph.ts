@@ -37,7 +37,7 @@ export class Graph<N, E>{
      * Otherwise returns undefined.
      * @example
      * g.setNode("my-id", "my-label");
-     * g.node("my-id")
+     * g.node("my-id");
      * // "my-label"
      */
     node(key:string): N {
@@ -45,7 +45,12 @@ export class Graph<N, E>{
     }
 
     /**
-     * Gets 
+     * Gets a node key or keys and returns an object with their keys and values
+     * @example
+     * g.setNode("id1", "label1");
+     * g.setNode("id2", "label2");
+     * g.getNodeInfo(["id1", "id2"]);
+     * // {"id1": "label1", "id2": "label2"}
      */
     getNodeInfo(nodeKeys:string | string[]): Record<string, N>{
         if(typeof(nodeKeys) === "string"){
@@ -58,6 +63,15 @@ export class Graph<N, E>{
         return graphObj
     }
 
+    /**
+     * Returns an array of all node keys in the graph.
+     * If a filter function is provided - returns only the nodes that the function returns truthy for.
+     * @example
+     * g.setNode("id1", "label1");
+     * g.setNode("id2", "label2");
+     * g.nodes();
+     * // ["id1", "id2"]
+     */
     nodes(filterPredicate?: (data: N) => boolean): string[]{
         if(typeof(filterPredicate) === 'undefined'){
             return this.graph.nodes()
@@ -71,14 +85,38 @@ export class Graph<N, E>{
         return nodesToReturn
     }
 
+    /**
+     * Returns true if the graph has a node with the given key.
+     * @example
+     * g.setNode("id1", "label1");
+     * g.setNode("id2", "label2");
+     * g.hasNode("id3");
+     * // false
+     */
     hasNode(key:string): boolean {
         return this.graph.hasNode(key)
     }
 
+    /**
+     * Removes the node with the id v in the graph or do nothing if the node is not in the graph.
+     * If the node was removed this function also removes any incident edges. 
+     * Returns the graph, allowing this to be chained with other functions. 
+     * @example
+     * g.setNode("id1", "label1");
+     * g.removeNode("id1");
+     */
     removeNode(key:string){
         return this.graph.removeNode(key)
     }
 
+    /**
+     * Returns the number of nodes in the graph.
+     * If a filter function is provided - returns only the number of nodes the function returns truthy for.
+     * @example
+     * g.setNode("id1", "label1");
+     * g.nodeCount();
+     * // 1
+     */
     nodeCount(filterPredicate?: (data: N) => boolean): number {
         if (typeof(filterPredicate) === 'undefined'){
             return this.graph.nodeCount()
@@ -86,6 +124,10 @@ export class Graph<N, E>{
         return this.nodes(filterPredicate).length
     }
 
+    /**
+     * Returns those nodes in the graph that have no in-edges.
+     * If a filter function is provided - returns only the nodes the function returns truthy for.
+     */
     sources(filterPredicate: (data: N) => boolean = returnTrue): string[]{
         if (typeof(filterPredicate) === 'undefined'){
             return this.graph.sources()
@@ -99,6 +141,10 @@ export class Graph<N, E>{
         return nodesToReturn
     }
 
+    /**
+     * Returns those nodes in the graph that have no out-edges.
+     * If a filter function is provided - returns only the nodes the function returns truthy for.
+     */
     sinks(filterPredicate: (data: N) => boolean = returnTrue): string[]{
         if (typeof(filterPredicate) === 'undefined'){
             return this.graph.sinks()
@@ -112,18 +158,51 @@ export class Graph<N, E>{
         return nodesToReturn
     }
 
+    /**
+     * Creates or updates the edge value for the edge key (sourceKey, targetKey) with the data provided.
+     * Returns the graph, allowing this to be chained with other functions.
+     * @example
+     * g.setEdge("source", "target", {depType:"dev"});
+     * g.edge("source", "target");
+     * // returns {depType:"dev"}
+     */
     setEdge<T>(sourceKey: string, tragetKey:string, data:T){
         return this.graph.setEdge(sourceKey, tragetKey, data)
     }
 
+    /**
+     * Returns true if the graph has an edge between source and target.
+     * @example
+     * g.setEdge("source1", "target1", {depType:"dev"});
+     * g.hasEdge("source1", "target1");
+     * // true
+     */
     hasEdge(sourceKey:string, targetKey:string): boolean {
         return this.graph.hasEdge(sourceKey, targetKey)
     }
 
+    /**
+     * Returns the data for the given source and target edge keys.
+     * Returned undefined if there is no such edge in the graph.
+     * @example
+     * g.setEdge("source1", "target1", {depType:"dev"});
+     * g.edge("source1", "target1");
+     * // returns {depType:"dev"}
+     */
     edge(sourceKey:string, targetKey:string){
         return this.graph.edge(sourceKey, targetKey)
     }
 
+    /**
+     * Returns an array of all edge keys objects in the graph, where v is the source and w is the target.
+     * If a filter function is provided - returns only the edges that the function returns truthy for.
+     * @example
+     * g.setEdge("a", "b", {depType:"dev"});
+     * g.setEdge("b", "c", {depType:"peer"});
+     * g.edges();
+     * // returns [{"v":"a","w":"b"},
+     *             {"v":"b","w":"c"}]
+     */
     edges(filterPredicate?: (data: E) => boolean){
         if(typeof(filterPredicate) === 'undefined'){
             return this.graph.edges()
