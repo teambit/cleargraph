@@ -1,4 +1,4 @@
-import { Graph } from '.'
+import { Graph } from './abstract-graph'
 import { expect } from 'chai'
 
 type DepType = 'peer' | 'regular' | 'dev'

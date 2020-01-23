@@ -2,7 +2,7 @@
   "name": "bit-graph",
   "version": "1.0.0",
   "description": "BitGraph is a graph library uniquely designed for Bit's purposes.",
-  "main": "index.js",
+  "main": "src/index.js",
   "dependencies": {
     "@types/chai": "^4.2.7",
     "@types/lodash": "^4.14.149",
