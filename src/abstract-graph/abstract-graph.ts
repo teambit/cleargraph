@@ -2,21 +2,51 @@ import _ from 'lodash'
 import { Graph as GraphLib} from 'graphlib/lib'
 import { isAcyclic } from 'graphlib/lib/alg'
 
+
+/**
+ * Graph is an abstract graph class using a Graphlib intance and extending Graphlib's functionality.
+ * The nodes and edges in the graph are represented by key-value pairs where the keys are strings, 
+ * and the generics N and E represent the node value and edge value respectively.
+ */
 export class Graph<N, E>{
     graph: GraphLib
+    /**
+     * When instantiating the graph, specify the values of N and E, and decide on the type of connections
+     * between the nodes using the 'directed' and 'multigraph' params.
+     * @example
+     * type NodeData = { bitId: string, version: string}
+     * type EdgeData = { depType: 'peer' | 'dev' | 'regular', semDist?: 1 | 2 | 3 }
+     * let g = new Graph<NodeData, EdgeData>()
+     */
     constructor(directed=true, multigraph=true){
         this.graph = new GraphLib({directed:directed, multigraph:multigraph, compound:true})
         this.graph.setDefaultEdgeLabel({})
     }
 
+    /**
+     * Creates or updates the key-value for a single node in the graph.
+     * @example
+     * g.setNode("my-id", "my-label");
+     */
     setNode(key: string, value: N){
         return this.graph.setNode(key, value)
     }
 
+    /**
+     * Returns the value of the specified node key if it is in the graph. 
+     * Otherwise returns undefined.
+     * @example
+     * g.setNode("my-id", "my-label");
+     * g.node("my-id")
+     * // "my-label"
+     */
     node(key:string): N {
         return this.graph.node(key)
     }
 
+    /**
+     * Gets 
+     */
     getNodeInfo(nodeKeys:string | string[]): Record<string, N>{
         if(typeof(nodeKeys) === "string"){
             return {[nodeKeys]:this.graph.node(nodeKeys)}
@@ -339,6 +369,10 @@ export class Graph<N, E>{
 
     merge(graph:GraphLib){
         //TODO
+    }
+
+    isCyclic(graph: Graph<N, E>){
+        return (!isAcyclic(graph))
     }
 
     isDirected(){
