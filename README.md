@@ -17,7 +17,7 @@ When instantiating the graph, specify the values of N and E, and decide on the t
 
 * multigraph: set to true to allow a graph to have multiple edges between the same pair of nodes. Default: true.
 
-```
+```typescript
 type NodeData = { name: string, radius: number}
 type EdgeData = { relationType: string, proximity: number}
 let g = new Graph<NodeData, EdgeData>() // by default this will create a directed graph that allows multi-edges
