@@ -17,11 +17,10 @@
     "outDir": "./dist"
   },
   "include": [
-    "src", "src/abstract-graph.spec.ts"
+    "src"
   ],
   "exclude": [
     "components",
-    "node_modules",
-    "e2e/fixtures"
+    "node_modules"
   ]
 }
