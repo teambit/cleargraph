@@ -1,6 +1,6 @@
 # Cleargraph
 
-Cleargraph is a graph library extending Graphlib's functionality. It adds:
+Cleargraph is a graph library extending [Graphlib](https://github.com/dagrejs/graphlib)'s functionality. It adds:
  * An abstraction over graphs that supports generic data types
  * Traversal over successors and predecessors
  * Use of user-defined filters on nodes and edges information and traversal
@@ -32,7 +32,9 @@ g.setEdge("earth", "sun", { relationType: 'orbits', proximity: 147240000 });
 
 ## Installation
 
-> the library is not yet published.
+```sh
+npm install cleargraph
+```
 
 ## Contributing
 
