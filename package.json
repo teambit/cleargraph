@@ -1,6 +1,6 @@
 {
   "name": "cleargraph",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A library for modeling and traversing graphs",
   "main": "dist/index.js",
   "dependencies": {
@@ -29,7 +29,9 @@
   "keywords": [
     "bit",
     "graph",
-    "traversal"
+    "traversal",
+    "cleargraph",
+    "clear-graph"
   ],
   "author": "teambit",
   "license": "Apache-2.0",
