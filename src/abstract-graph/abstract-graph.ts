@@ -1,10 +1,10 @@
 import _ from 'lodash'
 import { Graph as GraphLib} from 'graphlib/lib'
-import { isAcyclic } from 'graphlib/lib/alg'
+import { isAcyclic, topsort } from 'graphlib/lib/alg'
 
 
 /**
- * Graph is an abstract graph class using a Graphlib intance and extending Graphlib's functionality.
+ * Graph is an abstract graph class using a Graphlib instance and extending Graphlib's functionality.
  * The nodes and edges in the graph are represented by key-value pairs where the keys are strings, 
  * and the generics N and E represent the node value and edge value respectively.
  */
@@ -217,10 +217,26 @@ export class Graph<N, E>{
         return edgesToReturn
     }
 
+    /**
+     * Removes the edge (source, target) if the graph has an edge between source and target. 
+     * If not this function does nothing. 
+     * @example
+     * g.setEdge("a", "b", {depType:"dev"});
+     * g.removeEdge("a", "b")
+     */
+
     removeEdge(sourceKey:string, targetKey:string){
         return this.graph.removeEdge(sourceKey, targetKey)
     }
 
+    /**
+     * Returns the number of edges in the graph.
+     * If a filter function is provided - returns only the number of edges the function returns truthy for.
+     * @example
+     * g.setEdge("a", "b", {depType:"dev"});
+     * g.edgeCount();
+     * // 1
+     */
     edgeCount(filterPredicate?: (data: E) => boolean): number{
         if(typeof(filterPredicate) === 'undefined'){
             return this.graph.edgeCount()
@@ -228,6 +244,19 @@ export class Graph<N, E>{
         return this.edges(filterPredicate).length
     }
 
+    /**
+     * Returns all edges that point to a node.
+     * Returns undefined if the node is not in the graph.
+     * Behavior is undefined for undirected graphs - use nodeEdges instead.
+     * @example
+     * g.setEdge("a", "b", {depType:"dev"});
+     * g.setEdge("c", "b", {depType:"dev"});
+     * g.inEdges("b")
+     * // [
+            {"v":"a", "w":"b"},
+            {"v":"c", "w":"b"}
+        ]
+     */
     inEdges(nodeKey:string, filterPredicate?: (data: E) => boolean){
         if(typeof(filterPredicate) === 'undefined'){
             return this.graph.inEdges(nodeKey)
@@ -242,6 +271,16 @@ export class Graph<N, E>{
         return edgesToReturn
     }
 
+    /**
+     * Returns all edges that are pointed at by a node.
+     * Returns undefined if the node is not in the graph.
+     * Behavior is undefined for undirected graphs - use nodeEdges instead.
+     * @example
+     * g.setEdge("a", "b", {depType:"dev"});
+     * g.setEdge("b", "c", {depType:"dev"});
+     * g.outEdges("b")
+     * // [{"v":"b", "w":"c"}]
+     */
     outEdges(nodeKey:string, filterPredicate?: (data: E) => boolean){
         if(typeof(filterPredicate) === 'undefined'){
             return this.graph.outEdges(nodeKey)
@@ -256,6 +295,16 @@ export class Graph<N, E>{
         return edgesToReturn
     }
 
+    /**
+     * Returns all edges to or from a node regardless of direction.
+     * Returns undefined if the node is not in the graph.
+     * @example
+     * g.setEdge("a", "b", {depType:"dev"});
+     * g.setEdge("b", "c", {depType:"dev"});
+     * g.nodeEdges("b")
+     * // [{"v":"a", "w":"b"},
+     *     {"v":"b", "w":"c"}]]
+     */
     nodeEdges(nodeKey:string, filterPredicate?: (data: E) => boolean){
         if(typeof(filterPredicate) === 'undefined'){
             return this.graph.nodeEdges(nodeKey)
@@ -270,6 +319,12 @@ export class Graph<N, E>{
         return edgesToReturn
     }
 
+    /**
+     * Returns all nodes that are immediate predecessors of the specified node (the nodes that have edges that point to the specified node),
+     * or undefined if the node is not in the graph.
+     * If a filter function is provided - returns only the nodes that the function returns truthy for.
+     * Behavior is undefined for undirected graphs - use neighbors instead.
+     */
     predecessors(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
         let nodesToReturn: string[] = []
         const inEdges = this.graph.inEdges(nodeKey)
@@ -281,6 +336,12 @@ export class Graph<N, E>{
         return nodesToReturn
     }
 
+    /**
+     * Returns all nodes that are immediate successors of the specified node (the nodes that the specified node points to),
+     * or undefined if the node is not in the graph.
+     * If a filter function is provided - returns only the nodes that the function returns truthy for.
+     * Behavior is undefined for undirected graphs - use neighbors instead.
+     */
     successors(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
         let nodesToReturn: string[] = []
         const outEdges = this.graph.outEdges(nodeKey)
@@ -292,68 +353,42 @@ export class Graph<N, E>{
         return nodesToReturn
     }
 
+    /**
+     * Returns all nodes that are immediate successors or predecessors of the specified node, or undefined if the node is not in the graph.
+     * If a filter function is provided - returns only the nodes that the function returns truthy for.
+     */
     neighbors(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue){
         return _.concat(this.predecessors(nodeKey, filterPredicate), this.successors(nodeKey, filterPredicate))
     }
 
-    private innerRecurSuccessorsArray(nodeKey: string,
-                                 successorsList: string[] = [],
-                                 visited: { [key: string]: boolean } = {},
-                                 filterPredicate: (data: E) => boolean = returnTrue){  
-        const successors = this.successors(nodeKey, filterPredicate) || [];
-        if (successors.length > 0 && !visited[nodeKey]) {
-            successors.forEach((successor:string) => {
-            visited[nodeKey] = true;
-            successorsList.push(successor);
-            return this.innerRecurSuccessorsArray(successor, successorsList, visited, filterPredicate);
-            });
-        }
-        return successorsList;
-    }
-
-    private innerRecurSuccessorsGraph(nodeKey: string,
-                                 successorsGraph: Graph<N,E>,
-                                 visited: { [key: string]: boolean } = {},
-                                 filterPredicate: (data: E) => boolean = returnTrue){  
-        const successors = this.successors(nodeKey, filterPredicate) || [];
-        if (successors.length > 0 && !visited[nodeKey]) {
-            successors.forEach((successor:string) => {
-                visited[nodeKey] = true;
-                successorsGraph.setNode(successor, this.graph.node(successor));
-                successorsGraph.setEdge(nodeKey, successor, this.graph.edge(nodeKey, successor))
-                return this.innerRecurSuccessorsGraph(successor, successorsGraph, visited, filterPredicate);
-            });
-        }
-        return successorsGraph;
-    }
-
-    private innerRecurSuccessorsLayers(nodeKeys: string[],
-                                 layers: string[][],
-                                 floor: number,
-                                 filterPredicate: (data: E) => boolean = returnTrue){  
-        if (nodeKeys.length > 0) {
-            let nextFloor = floor + 1
-            layers.push([])
-            layers[floor].forEach((successor:string) => {
-                layers[nextFloor] = layers[nextFloor].concat(this.successors(successor, filterPredicate))
-            });
-            return this.innerRecurSuccessorsLayers(layers[nextFloor], layers, nextFloor, filterPredicate)
-        }
-        return layers;
-    }
-
+    /**
+     * Returns an array of all node keys that are recursively successors of the specified node, or undefined if the node is not in the graph.
+     * If a filter function is provided - keeps traversing the graph only over edges for which the filter function returns truthy.
+     * Behavior is undefined for undirected graphs.
+     */
     getSuccessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue): string[]{
-        return _.uniq(this.innerRecurSuccessorsArray(nodeKey, [], {}, filterPredicate))
+        return _.uniq(this._innerRecurSuccessorsArray(nodeKey, [], {}, filterPredicate))
      }
 
+     /**
+     * Returns the sub-graph of the provided node key and all node keys that are recursively its successors, or undefined if the node is not in the graph.
+     * If a filter function is provided - keeps traversing the graph only over edges for which the filter function returns truthy.
+     * Behavior is undefined for undirected graphs.
+     */
     getSuccessorsGraphRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue): Graph<N,E>{
         // also returns the original nodeKey as part of the returned sub-graph
         let g = new Graph<N,E>()
         g.setNode(nodeKey, this.graph.node(nodeKey))
-        return this.innerRecurSuccessorsGraph(nodeKey, g, {}, filterPredicate)
+        return this._innerRecurSuccessorsGraph(nodeKey, g, {}, filterPredicate)
     }
     
-    getSuccessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, order:'fromSource' | 'fromLastLeaf'= 'fromSource'): string[][] | never {
+    /**
+     * Returns an array of arrays of node keys representing the topological sort of the provided node key and all node keys that are recursively its successors, or undefined if the node is not in the graph.
+     * If a filter function is provided - keeps traversing the graph only over edges for which the filter function returns truthy.
+     * The layers can be ordered either from the provided node key (order='fromSource', default) or from the last node(s) in the sorting (order='fromLastNodes')
+     * Behavior is undefined for undirected graphs.
+     */
+    getSuccessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, order:'fromSource' | 'fromLastNodes'= 'fromSource'): string[][] | never {
         let successorsGraph = this.getSuccessorsGraphRecursively(nodeKey, filterPredicate)
         if(!isAcyclic(successorsGraph)){
             throw new Error("cyclic dependency")
@@ -361,68 +396,39 @@ export class Graph<N, E>{
         let layers: string[][] = []
         layers[0]=[nodeKey]
         let floor = 0
-        let rawLayers = this.innerRecurSuccessorsLayers([nodeKey], layers, floor, filterPredicate)
+        let rawLayers = this._innerRecurSuccessorsLayers([nodeKey], layers, floor, filterPredicate)
         return arrangeLayers(rawLayers, order)
     }
 
-    private innerRecurPredecessorsArray(nodeKey: string,
-                                 predecessorsList: string[] = [],
-                                 visited: { [key: string]: boolean } = {},
-                                 filterPredicate: (data: E) => boolean = returnTrue){  
-        const predecessors = this.predecessors(nodeKey, filterPredicate) || [];
-        if (predecessors.length > 0 && !visited[nodeKey]) {
-            predecessors.forEach((predecessor:string) => {
-            visited[nodeKey] = true;
-            predecessorsList.push(predecessor);
-            return this.innerRecurPredecessorsArray(predecessor, predecessorsList, visited, filterPredicate);
-            });
-        }
-        return predecessorsList;
-    }
-
-    private innerRecurPredecessorsGraph(nodeKey: string,
-                                 predecessorsGraph: Graph<N,E>,
-                                 visited: { [key: string]: boolean } = {},
-                                 filterPredicate: (data: E) => boolean = returnTrue){  
-        const predecessors = this.predecessors(nodeKey, filterPredicate) || [];
-        if (predecessors.length > 0 && !visited[nodeKey]) {
-            predecessors.forEach((predecessor:string) => {
-                visited[nodeKey] = true;
-                predecessorsGraph.setNode(predecessor, this.graph.node(predecessor));
-                predecessorsGraph.setEdge(nodeKey, predecessor, this.graph.edge(nodeKey, predecessor))
-                return this.innerRecurPredecessorsGraph(predecessor, predecessorsGraph, visited, filterPredicate);
-            });
-        }
-        return predecessorsGraph;
-    }
-
-    private innerRecurPredecessorsLayers(nodeKeys: string[],
-                                 layers: string[][],
-                                 floor: number,
-                                 filterPredicate: (data: E) => boolean = returnTrue){  
-        if (nodeKeys.length > 0) {
-            let nextFloor = floor + 1
-            layers.push([])
-            layers[floor].forEach((predecessor:string) => {
-                layers[nextFloor] = layers[nextFloor].concat(this.predecessors(predecessor, filterPredicate))
-            });
-            return this.innerRecurPredecessorsLayers(layers[nextFloor], layers, nextFloor, filterPredicate)
-        }
-        return layers;
-    }
-
+    /**
+     * Returns an array of all node keys that are recursively predecessors of the specified node, or undefined if the node is not in the graph.
+     * If a filter function is provided - keeps traversing the graph only over edges for which the filter function returns truthy.
+     * Behavior is undefined for undirected graphs.
+     */
     getPredecessorsArrayRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue): string[]{
-        return _.uniq(this.innerRecurPredecessorsArray(nodeKey, [], {}, filterPredicate))
+        return _.uniq(this._innerRecurPredecessorsArray(nodeKey, [], {}, filterPredicate))
      }
 
+    /**
+     * Returns the sub-graph of the provided node key and all node keys that are recursively its predecessors, or undefined if the node is not in the graph.
+     * If a filter function is provided - keeps traversing the graph only over edges for which the filter function returns truthy.
+     * Behavior is undefined for undirected graphs.
+     */
     getPredecessorsGraphRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue): Graph<N,E> {
         // also returns the original nodeKey as part of the returned sub-graph
         let g = new Graph<N,E>()
         g.setNode(nodeKey, this.graph.node(nodeKey))
-        return this.innerRecurPredecessorsGraph(nodeKey, g, {}, filterPredicate)
+        return this._innerRecurPredecessorsGraph(nodeKey, g, {}, filterPredicate)
     }
     
-    getPredecessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, order:'fromSource' | 'fromLastLeaf'= 'fromSource'): string[][] | never {
+    /**
+     * Returns an array of arrays of node keys representing the topological sort of the provided node key and all node keys that are recursively its predecessors, 
+     * or undefined if the node is not in the graph.
+     * If a filter function is provided - keeps traversing the graph only over edges for which the filter function returns truthy.
+     * The layers can be ordered either from the provided node key (order='fromSource', default) or from the last node(s) in the sorting (order='fromLastNodes')
+     * Behavior is undefined for undirected graphs.
+     */
+    getPredecessorsLayersRecursively(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, order:'fromSource' | 'fromLastNodes'= 'fromSource'): string[][] | never {
         let successorsGraph = this.getPredecessorsGraphRecursively(nodeKey, filterPredicate) // first getting as a graph to check if cyclic
         if(!isAcyclic(successorsGraph)){
             throw new Error("cyclic sub-graph")
@@ -430,9 +436,18 @@ export class Graph<N, E>{
         let layers: string[][] = []
         layers[0]=[nodeKey]
         let floor = 0
-        let rawLayers = this.innerRecurPredecessorsLayers([nodeKey], layers, floor, filterPredicate)
+        let rawLayers = this._innerRecurPredecessorsLayers([nodeKey], layers, floor, filterPredicate)
         return arrangeLayers(rawLayers, order)
      }
+
+    /**
+     * An implementation of topological sorting.
+     * This function returns an array of all nodes in the graph such that for each edge u -> v, u appears before v in the array. 
+     * If the graph has a cycle it is impossible to generate such a list and CycleException is thrown.
+     */
+    toposort(){
+        return (topsort(this.graph))
+    }
 
     setGraphLabel(label:string){
         return this.graph.setGraph(label)
@@ -461,11 +476,104 @@ export class Graph<N, E>{
     isMultigraph(){
         return this.graph,this.isMultigraph()
     }
-}
+
+    private _innerRecurSuccessorsArray(nodeKey: string,
+                                    successorsList: string[] = [],
+                                    visited: { [key: string]: boolean } = {},
+                                    filterPredicate: (data: E) => boolean = returnTrue){  
+        const successors = this.successors(nodeKey, filterPredicate) || [];
+        if (successors.length > 0 && !visited[nodeKey]) {
+            successors.forEach((successor:string) => {
+            visited[nodeKey] = true;
+            successorsList.push(successor);
+            return this._innerRecurSuccessorsArray(successor, successorsList, visited, filterPredicate);
+            });
+        }
+    return successorsList;
+    }
+
+    private _innerRecurSuccessorsGraph(nodeKey: string,
+                                        successorsGraph: Graph<N,E>,
+                                        visited: { [key: string]: boolean } = {},
+                                        filterPredicate: (data: E) => boolean = returnTrue){  
+        const successors = this.successors(nodeKey, filterPredicate) || [];
+        if (successors.length > 0 && !visited[nodeKey]) {
+            successors.forEach((successor:string) => {
+                visited[nodeKey] = true;
+                successorsGraph.setNode(successor, this.graph.node(successor));
+                successorsGraph.setEdge(nodeKey, successor, this.graph.edge(nodeKey, successor))
+                return this._innerRecurSuccessorsGraph(successor, successorsGraph, visited, filterPredicate);
+            });
+        }
+        return successorsGraph;
+    }
+
+    private _innerRecurSuccessorsLayers(nodeKeys: string[],
+                                        layers: string[][],
+                                        floor: number,
+                                        filterPredicate: (data: E) => boolean = returnTrue){  
+        if (nodeKeys.length > 0) {
+            let nextFloor = floor + 1
+            layers.push([])
+            layers[floor].forEach((successor:string) => {
+                layers[nextFloor] = layers[nextFloor].concat(this.successors(successor, filterPredicate))
+                });
+            return this._innerRecurSuccessorsLayers(layers[nextFloor], layers, nextFloor, filterPredicate)
+        }
+        return layers;
+    }
+
+    private _innerRecurPredecessorsArray(nodeKey: string,
+                                        predecessorsList: string[] = [],
+                                        visited: { [key: string]: boolean } = {},
+                                        filterPredicate: (data: E) => boolean = returnTrue){  
+        const predecessors = this.predecessors(nodeKey, filterPredicate) || [];
+        if (predecessors.length > 0 && !visited[nodeKey]) {
+            predecessors.forEach((predecessor:string) => {
+                visited[nodeKey] = true;
+                predecessorsList.push(predecessor);
+                return this._innerRecurPredecessorsArray(predecessor, predecessorsList, visited, filterPredicate);
+            });
+        }
+        return predecessorsList;
+    }
+
+    private _innerRecurPredecessorsGraph(nodeKey: string,
+                                        predecessorsGraph: Graph<N,E>,
+                                        visited: { [key: string]: boolean } = {},
+                                        filterPredicate: (data: E) => boolean = returnTrue){  
+        const predecessors = this.predecessors(nodeKey, filterPredicate) || [];
+        if (predecessors.length > 0 && !visited[nodeKey]) {
+            predecessors.forEach((predecessor:string) => {
+                visited[nodeKey] = true;
+                predecessorsGraph.setNode(predecessor, this.graph.node(predecessor));
+                predecessorsGraph.setEdge(nodeKey, predecessor, this.graph.edge(nodeKey, predecessor))
+                return this._innerRecurPredecessorsGraph(predecessor, predecessorsGraph, visited, filterPredicate);
+            });
+        }
+        return predecessorsGraph;
+    }
+
+    private _innerRecurPredecessorsLayers(nodeKeys: string[],
+                                        layers: string[][],
+                                        floor: number,
+                                        filterPredicate: (data: E) => boolean = returnTrue){  
+        if (nodeKeys.length > 0) {
+            let nextFloor = floor + 1
+            layers.push([])
+            layers[floor].forEach((predecessor:string) => {
+                layers[nextFloor] = layers[nextFloor].concat(this.predecessors(predecessor, filterPredicate))
+            });
+            return this._innerRecurPredecessorsLayers(layers[nextFloor], layers, nextFloor, filterPredicate)
+            }
+        return layers;
+        }
+
+    }
 
 function returnTrue(){ return true }
 
-function arrangeLayers(layers:string[][], order: 'fromSource' | 'fromLastLeaf'){
+function arrangeLayers(layers:string[][], order: 'fromSource' | 'fromLastNodes'){
     let finalLayers: string[][] = []
     let seenNodes:string[] = []
     layers = layers.reverse()
