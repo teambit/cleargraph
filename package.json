@@ -1,8 +1,8 @@
 {
-  "name": "bit-graph",
+  "name": "cleargraph",
   "version": "1.0.0",
-  "description": "BitGraph is a graph library uniquely designed for Bit's purposes.",
-  "main": "index.js",
+  "description": "A library for modeling and traversing graphs",
+  "main": "src/index.js",
   "dependencies": {
     "@types/chai": "^4.2.7",
     "@types/lodash": "^4.14.149",
