@@ -30,9 +30,7 @@ g.setEdge("earth", "sun", { relationType: 'orbits', proximity: 147240000 });
 
 ## Installation
 
-```
-npm install cleargraph
-```
+> the library is not yet published.
 
 ## Contributing
 
