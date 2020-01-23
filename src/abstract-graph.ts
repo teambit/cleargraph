@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { Graph as GraphLib} from 'graphlib/lib'
 import { isAcyclic, topsort, findCycles } from 'graphlib/lib/alg'
+import { Edge, Node } from './index';
 
 
 /**
@@ -615,44 +616,4 @@ function arrangeLayers(layers:string[][], order: 'fromSource' | 'fromLastNodes')
    return order === 'fromSource' ? finalLayers.reverse() : finalLayers
 }
 
-
-// TODO: move Node and Edge class to different file
-
-export type NodeId = string;
-
-export class Node<N> {
-  constructor(readonly key: NodeId, readonly value: N) {}
-
-  static fromObject<N>(object: { key: NodeId; value: N }) {
-    return new Node(object.key, object.value);
-  }
-}
-
-/**
- * A single directed edge consisting of a source id, target id,
- * and the data associated with the edge.
- *
- * @tparam ED type of the edge attribute
- *
- * @param srcId The vertex id of the source vertex
- * @param dstId The vertex id of the target vertex
- * @param attr The attribute associated with the edge
- */
-export class Edge<ED> {
-  constructor(readonly sourceKey: NodeId, readonly targetKey: NodeId, readonly data: ED) {}
-
-  static fromObject<ED>(object: RawEdge<ED>) {
-    return new Edge(object.sourceKey, object.targetKey, object.data);
-  }
-
-  get id(): string {
-    return `${this.sourceKey}_${this.targetKey}`;
-  }
-}
-
-export type RawEdge<ED> = {
-  sourceKey: NodeId;
-  targetKey: NodeId;
-  data: ED;
-};
 

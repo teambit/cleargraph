@@ -4,16 +4,16 @@
   "description": "A library for modeling and traversing graphs",
   "main": "src/index.js",
   "dependencies": {
-    "@types/chai": "^4.2.7",
-    "@types/lodash": "^4.14.149",
-    "@types/mocha": "^5.2.7",
-    "chai": "^4.2.0",
     "graphlib": "^2.1.8",
     "lodash": "^4.17.15",
-    "ts-node": "^8.6.2",
     "typescript": "^3.7.4"
   },
   "devDependencies": {
+    "ts-node": "^8.6.2",
+    "chai": "^4.2.0",
+    "@types/chai": "^4.2.7",
+    "@types/lodash": "^4.14.149",
+    "@types/mocha": "^5.2.7",
     "mocha": "^7.0.0"
   },
   "scripts": {
@@ -21,13 +21,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/teambit/bit-graph.git"
+    "url": "git+https://github.com/teambit/cleargraph.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "bit",
+    "graph",
+    "traversal"
+  ],
+  "author": "teambit",
+  "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/teambit/bit-graph/issues"
+    "url": "https://github.com/teambit/cleargraph/issues"
   },
-  "homepage": "https://github.com/teambit/bit-graph#readme"
+  "homepage": "https://github.com/teambit/cleargraph#readme"
 }
