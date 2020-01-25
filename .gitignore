@@ -85,3 +85,6 @@ bin/bit
 
 # sonarcloud dir
 .scannerwork
+
+# documentation portal
+docs

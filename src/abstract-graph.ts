@@ -15,9 +15,11 @@ export class Graph<N, E>{
      * When instantiating the graph, specify the values of N and E, and decide on the type of connections
      * between the nodes using the 'directed' and 'multigraph' params.
      * @example
+     * ```typescript
      * type NodeData = { bitId: string, version: string}
      * type EdgeData = { depType: 'peer' | 'dev' | 'regular', semDist?: 1 | 2 | 3 }
      * let g = new Graph<NodeData, EdgeData>()
+     * ```
      */
     constructor(directed = true, multigraph = true, readonly initialNodes?: Node<N>[], readonly initialEdges?: Edge<E>[]) {
         this.graph = new GraphLib({ directed: directed, multigraph: multigraph, compound: true });
@@ -33,7 +35,9 @@ export class Graph<N, E>{
     /**
      * Creates or updates the key-value for a single node in the graph.
      * @example
+     * ```typescript
      * g.setNode("my-id", "my-label");
+     * ```
      */
     setNode(key: string, value: N){
         return this.graph.setNode(key, value)
@@ -47,9 +51,11 @@ export class Graph<N, E>{
      * Returns the value of the specified node key if it is in the graph. 
      * Otherwise returns undefined.
      * @example
+     * ```typescript
      * g.setNode("my-id", "my-label");
      * g.node("my-id");
      * // "my-label"
+     * ```
      */
     node(key:string): N {
         return this.graph.node(key)
@@ -58,10 +64,12 @@ export class Graph<N, E>{
     /**
      * Gets a node key or keys and returns an object with their keys and values
      * @example
+     * ```typescript
      * g.setNode("id1", "label1");
      * g.setNode("id2", "label2");
      * g.getNodeInfo(["id1", "id2"]);
      * // {"id1": "label1", "id2": "label2"}
+     * ```
      */
     getNodeInfo(nodeKeys:string | string[]): Record<string, N>{
         if(typeof(nodeKeys) === "string"){
@@ -78,10 +86,12 @@ export class Graph<N, E>{
      * Returns an array of all node keys in the graph.
      * If a filter function is provided - returns only the nodes that the function returns truthy for.
      * @example
+     * ```typescript
      * g.setNode("id1", "label1");
      * g.setNode("id2", "label2");
      * g.nodes();
      * // ["id1", "id2"]
+     * ```
      */
     nodes(filterPredicate?: (data: N) => boolean): string[]{
         if(typeof(filterPredicate) === 'undefined'){
@@ -99,10 +109,12 @@ export class Graph<N, E>{
     /**
      * Returns true if the graph has a node with the given key.
      * @example
+     * ```typescript
      * g.setNode("id1", "label1");
      * g.setNode("id2", "label2");
      * g.hasNode("id3");
      * // false
+     * ```
      */
     hasNode(key:string): boolean {
         return this.graph.hasNode(key)
@@ -113,8 +125,10 @@ export class Graph<N, E>{
      * If the node was removed this function also removes any incident edges. 
      * Returns the graph, allowing this to be chained with other functions. 
      * @example
+     * ```typescript
      * g.setNode("id1", "label1");
      * g.removeNode("id1");
+     * ```
      */
     removeNode(key:string){
         return this.graph.removeNode(key)
@@ -124,9 +138,11 @@ export class Graph<N, E>{
      * Returns the number of nodes in the graph.
      * If a filter function is provided - returns only the number of nodes the function returns truthy for.
      * @example
+     * ```typescript
      * g.setNode("id1", "label1");
      * g.nodeCount();
      * // 1
+     * ```
      */
     nodeCount(filterPredicate?: (data: N) => boolean): number {
         if (typeof(filterPredicate) === 'undefined'){
@@ -173,9 +189,11 @@ export class Graph<N, E>{
      * Creates or updates the edge value for the edge key (sourceKey, targetKey) with the data provided.
      * Returns the graph, allowing this to be chained with other functions.
      * @example
+     * ```typescript
      * g.setEdge("source", "target", {depType:"dev"});
      * g.edge("source", "target");
      * // returns {depType:"dev"}
+     * ```
      */
     setEdge<T>(sourceKey: string, tragetKey:string, data:T){
         return this.graph.setEdge(sourceKey, tragetKey, data)
@@ -188,9 +206,11 @@ export class Graph<N, E>{
     /**
      * Returns true if the graph has an edge between source and target.
      * @example
+     * ```typescript
      * g.setEdge("source1", "target1", {depType:"dev"});
      * g.hasEdge("source1", "target1");
      * // true
+     * ```
      */
     hasEdge(sourceKey:string, targetKey:string): boolean {
         return this.graph.hasEdge(sourceKey, targetKey)
@@ -200,9 +220,11 @@ export class Graph<N, E>{
      * Returns the data for the given source and target edge keys.
      * Returned undefined if there is no such edge in the graph.
      * @example
+     * ```typescript
      * g.setEdge("source1", "target1", {depType:"dev"});
      * g.edge("source1", "target1");
      * // returns {depType:"dev"}
+     * ```
      */
     edge(sourceKey:string, targetKey:string){
         return this.graph.edge(sourceKey, targetKey)
@@ -212,11 +234,13 @@ export class Graph<N, E>{
      * Returns an array of all edge keys objects in the graph, where v is the source and w is the target.
      * If a filter function is provided - returns only the edges that the function returns truthy for.
      * @example
+     * ```typescript
      * g.setEdge("a", "b", {depType:"dev"});
      * g.setEdge("b", "c", {depType:"peer"});
      * g.edges();
      * // returns [{"v":"a","w":"b"},
-     *             {"v":"b","w":"c"}]
+     * //          {"v":"b","w":"c"}]
+     * ```
      */
     edges(filterPredicate?: (data: E) => boolean){
         if(typeof(filterPredicate) === 'undefined'){
@@ -236,8 +260,10 @@ export class Graph<N, E>{
      * Removes the edge (source, target) if the graph has an edge between source and target. 
      * If not this function does nothing. 
      * @example
+     * ```typescript
      * g.setEdge("a", "b", {depType:"dev"});
      * g.removeEdge("a", "b")
+     * ```
      */
 
     removeEdge(sourceKey:string, targetKey:string){
@@ -248,9 +274,11 @@ export class Graph<N, E>{
      * Returns the number of edges in the graph.
      * If a filter function is provided - returns only the number of edges the function returns truthy for.
      * @example
+     * ```typescript
      * g.setEdge("a", "b", {depType:"dev"});
      * g.edgeCount();
      * // 1
+     * ```
      */
     edgeCount(filterPredicate?: (data: E) => boolean): number{
         if(typeof(filterPredicate) === 'undefined'){
@@ -264,6 +292,7 @@ export class Graph<N, E>{
      * Returns undefined if the node is not in the graph.
      * Behavior is undefined for undirected graphs - use nodeEdges instead.
      * @example
+     * ```typescript
      * g.setEdge("a", "b", {depType:"dev"});
      * g.setEdge("c", "b", {depType:"dev"});
      * g.inEdges("b")
@@ -271,6 +300,7 @@ export class Graph<N, E>{
             {"v":"a", "w":"b"},
             {"v":"c", "w":"b"}
         ]
+        ```typescript
      */
     inEdges(nodeKey:string, filterPredicate?: (data: E) => boolean){
         if(typeof(filterPredicate) === 'undefined'){
@@ -291,10 +321,12 @@ export class Graph<N, E>{
      * Returns undefined if the node is not in the graph.
      * Behavior is undefined for undirected graphs - use nodeEdges instead.
      * @example
+     * ```typescript
      * g.setEdge("a", "b", {depType:"dev"});
      * g.setEdge("b", "c", {depType:"dev"});
      * g.outEdges("b")
      * // [{"v":"b", "w":"c"}]
+     * ```
      */
     outEdges(nodeKey:string, filterPredicate?: (data: E) => boolean){
         if(typeof(filterPredicate) === 'undefined'){
@@ -314,11 +346,13 @@ export class Graph<N, E>{
      * Returns all edges to or from a node regardless of direction.
      * Returns undefined if the node is not in the graph.
      * @example
+     * ```typescript
      * g.setEdge("a", "b", {depType:"dev"});
      * g.setEdge("b", "c", {depType:"dev"});
      * g.nodeEdges("b")
      * // [{"v":"a", "w":"b"},
      *     {"v":"b", "w":"c"}]]
+     * ```
      */
     nodeEdges(nodeKey:string, filterPredicate?: (data: E) => boolean){
         if(typeof(filterPredicate) === 'undefined'){
