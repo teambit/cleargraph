@@ -20,7 +20,7 @@
   "scripts": {
     "build": "tsc -d",
     "clean": "rm -rf dist && rm -rf docs",
-    "build-docs": "npx typedoc --out docs src --exclude \"**/*+(index|.spec|.e2e).ts\" --theme minimal",
+    "build-docs": "npx typedoc --out docs src --exclude \"**/*+(index|.spec|.e2e).ts\" --theme minimal --excludePrivate --excludeProtected",
     "prepublishOnly": "npm run clean && npm run build",
     "test": "mocha --require ts-node/register/transpile-only --require source-map-support/register --recursive src/**/*.spec.ts"
   },
