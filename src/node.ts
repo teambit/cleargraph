@@ -1,9 +1,6 @@
-export type NodeId = string;
+import { NodeData } from "./index";
 
-export class Node<N> {
-  constructor(readonly key: NodeId, readonly value: N) {}
-
-  static fromObject<N>(object: { key: NodeId; value: N }) {
-    return new Node(object.key, object.value);
-  }
+export interface Node<ND extends NodeData> {
+  key: string
+  data: ND
 }

@@ -1,26 +1,83 @@
 import { Graph } from './abstract-graph'
 import { expect } from 'chai'
+import { NodeData } from './index'
+import { EdgeData } from './index'
+
+
+class SpecificNodeData implements NodeData {
+    constructor(private bitId: string, private version: string){
+        this.bitId = bitId
+        this.version = version
+    }
+    equals(newData: SpecificNodeData){
+        return (this.bitId === newData.bitId && this.version === newData.version)
+    }
+    clone(){ 
+        return (this as SpecificNodeData) }
+
+    merge(newData: SpecificNodeData){
+        return new SpecificNodeData(newData.bitId, newData.version)
+    }
+
+    getBitId(){
+        return this.bitId
+    }
+
+    getVersion(){
+        return this.version
+    }
+}
 
 type DepType = 'peer' | 'regular' | 'dev'
-type NodeData = { bitId: string, version: string}
-type EdgeData = { depType: DepType, semDist?: 1 | 2 | 3 }
+class SpecificEdgeData implements EdgeData {
+    constructor(private depType: DepType, private semDist?: 1 | 2 | 3){
+        this.depType = depType
+        this.semDist = semDist
+    }
+    equals(newData: SpecificEdgeData){
+        return (this.depType === newData.depType && this.semDist === newData.semDist)
+    }
+    clone(){ 
+        return (this as SpecificEdgeData) }
+
+    merge(newData: SpecificEdgeData){
+        return new SpecificEdgeData(newData.depType, newData.semDist)
+    }
+
+    getDepType(){
+        return this.depType
+    }
+
+    getSemDist(){
+        return this.semDist
+    }
+}
+
+// type sNodeData  = { bitId: string, version: string}
+// type sEdgeData = { depType: DepType, semDist?: 1 | 2 | 3 }
+
+
+// class Clock implements ClockInterface {
+//     currentTime: Date = new Date();
+//     constructor(h: number, m: number) { }
+// }
 
 describe('GraphTester', () => {
-    let g = new Graph<NodeData, EdgeData>()
-    g.setNode("a", { bitId: 'comp1', version: '1.0.0'})
-    g.setNode("b", { bitId: 'comp2', version: '2.0.0'})
-    g.setNode("c", { bitId: 'comp3', version: '1.0.1'})
-    g.setNode("d", { bitId: 'comp4', version: '15.0.0'})
-    g.setNode("e", { bitId: 'comp5', version: '3.0.0'})
-    g.setNode("f", { bitId: 'comp6', version: '2.0.0'})
-    g.setNode("g", { bitId: 'comp7', version: '2.0.0'})
-    g.setEdge("a", "b", {depType: "peer", semDist: 3})
-    g.setEdge("a", "c", {depType: "dev", semDist: 3})
-    g.setEdge("c", "d", {depType: "regular"})
-    g.setEdge("c", "e", {depType: "regular", semDist: 2})
-    g.setEdge("d", "f", {depType: "peer"})
-    g.setEdge("e", "d", {depType: "dev"})
-    g.setEdge("g", "a", {depType: "dev", semDist: 1})
+    let g = new Graph<SpecificNodeData, SpecificEdgeData>()
+    g.setNode("a", new SpecificNodeData('comp1', '1.0.0'))
+    g.setNode("b", new SpecificNodeData('comp2', '2.0.0'))
+    g.setNode("c", new SpecificNodeData('comp3', '1.0.1'))
+    g.setNode("d", new SpecificNodeData('comp4', '15.0.0'))
+    g.setNode("e", new SpecificNodeData('comp5', '3.0.0'))
+    g.setNode("f", new SpecificNodeData('comp6', '2.0.0'))
+    g.setNode("g", new SpecificNodeData('comp7', '2.0.0'))
+    g.setEdge("a", "b", new SpecificEdgeData("peer", 3))
+    g.setEdge("a", "c", new SpecificEdgeData("dev", 3))
+    g.setEdge("c", "d", new SpecificEdgeData("regular", 3))
+    g.setEdge("c", "e", new SpecificEdgeData("regular", 2))
+    g.setEdge("d", "f", new SpecificEdgeData("peer", 1))
+    g.setEdge("e", "d", new SpecificEdgeData("dev", 1))
+    g.setEdge("g", "a", new SpecificEdgeData("dev", 1))
 
     it('should return node value', () => {
         expect(g.node("b")).to.deep.equal({ bitId: 'comp2', version: '2.0.0'})
@@ -178,24 +235,24 @@ describe('GraphTester', () => {
 
     it('should return all node successors recursively as layers - version 2', () => {
         let a = new Graph<NodeData, EdgeData>()
-        a.setNode("a", { bitId: 'comp1', version: '1.0.0'})
-        a.setNode("b", { bitId: 'comp2', version: '2.0.0'})
-        a.setNode("c", { bitId: 'comp3', version: '1.0.1'})
-        a.setNode("d", { bitId: 'comp4', version: '15.0.0'})
-        a.setNode("e", { bitId: 'comp5', version: '3.0.0'})
-        a.setNode("f", { bitId: 'comp6', version: '2.0.0'})
-        a.setNode("g", { bitId: 'comp7', version: '2.0.0'})
-        a.setNode("h", { bitId: 'comp7', version: '2.0.0'})
-        a.setEdge("a", "b", {depType: "peer", semDist: 3})
-        a.setEdge("a", "g", {depType: "peer", semDist: 3})
-        a.setEdge("b", "c", {depType: "dev", semDist: 3})
-        a.setEdge("b", "f", {depType: "regular"})
-        a.setEdge("c", "e", {depType: "regular", semDist: 2})
-        a.setEdge("c", "d", {depType: "peer"})
-        a.setEdge("d", "f", {depType: "dev"})
-        a.setEdge("f", "g", {depType: "dev"})
-        a.setEdge("g", "h", {depType: "dev"})
-        a.setEdge("e", "h", {depType: "dev", semDist: 1})
+        a.setNode("a", new SpecificNodeData('comp1', '1.0.0'))
+        a.setNode("b", new SpecificNodeData('comp2','2.0.0'))
+        a.setNode("c", new SpecificNodeData('comp3','1.0.1'))
+        a.setNode("d", new SpecificNodeData('comp4','15.0.0'))
+        a.setNode("e", new SpecificNodeData('comp5','3.0.0'))
+        a.setNode("f", new SpecificNodeData('comp6','2.0.0'))
+        a.setNode("g", new SpecificNodeData('comp7','2.0.0'))
+        a.setNode("h", new SpecificNodeData('comp7','2.0.0'))
+        a.setEdge("a", "b", new SpecificEdgeData("peer", 3))
+        a.setEdge("a", "g", new SpecificEdgeData("peer", 3))
+        a.setEdge("b", "c", new SpecificEdgeData("dev", 3))
+        a.setEdge("b", "f", new SpecificEdgeData("regular"))
+        a.setEdge("c", "e", new SpecificEdgeData("regular", 2))
+        a.setEdge("c", "d", new SpecificEdgeData("peer"))
+        a.setEdge("d", "f", new SpecificEdgeData("dev"))
+        a.setEdge("f", "g", new SpecificEdgeData("dev"))
+        a.setEdge("g", "h", new SpecificEdgeData("dev"))
+        a.setEdge("e", "h", new SpecificEdgeData("dev", 1))
         expect(a.getSuccessorsLayersRecursively('a')).to.deep.equal([["a"],["b"],["c"],["e","d"],["f"],["g"],["h"]])
     })
 
@@ -240,26 +297,26 @@ describe('GraphTester', () => {
 
 })
 
-function nodeFilterPredicateVersion(nodeData: NodeData){
-    return (nodeData.version === '2.0.0')
+function nodeFilterPredicateVersion(nodeData: SpecificNodeData){
+    return (nodeData.getVersion() === '2.0.0')
 }
 
-function nodeFilterPredicateComp(nodeData: NodeData){
-    return (nodeData.bitId === 'comp2')
+function nodeFilterPredicateComp(nodeData: SpecificNodeData){
+    return (nodeData.getBitId() === 'comp2')
 }
 
-function edgeFilterByRegularDep(edgeData: EdgeData){
-    return (edgeData.depType === 'regular')
+function edgeFilterByRegularDep(edgeData: SpecificEdgeData){
+    return (edgeData.getDepType() === 'regular')
 }
 
-function edgeFilterByDevDep(edgeData: EdgeData){
-    return (edgeData.depType === 'dev')
+function edgeFilterByDevDep(edgeData: SpecificEdgeData){
+    return (edgeData.getDepType() === 'dev')
 }
 
-function edgeFilterByPeerDep(edgeData: EdgeData){
-    return (edgeData.depType === 'peer')
+function edgeFilterByPeerDep(edgeData: SpecificEdgeData){
+    return (edgeData.getDepType() === 'peer')
 }
 
-function edgeFilterByPeerOrDevDep(edgeData: EdgeData){
-    return (edgeData.depType === 'peer' || edgeData.depType === 'dev')
+function edgeFilterByPeerOrDevDep(edgeData: SpecificEdgeData){
+    return (edgeData.getDepType() === 'peer' || edgeData.getDepType() === 'dev')
 }
