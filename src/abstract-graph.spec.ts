@@ -1,8 +1,6 @@
 import { Graph } from './abstract-graph'
 import { expect } from 'chai'
-import { NodeData } from './index'
-import { EdgeData } from './index'
-
+import { Node, Edge, NodeData, EdgeData } from './index'
 
 class SpecificNodeData implements NodeData {
     constructor(private bitId: string, private version: string){
@@ -25,6 +23,15 @@ class SpecificNodeData implements NodeData {
 
     getVersion(){
         return this.version
+    }
+}
+
+class SpecificNode implements Node<SpecificNodeData>{
+    key: string
+    data: SpecificNodeData
+    constructor(key: string, data: SpecificNodeData){
+        this.key = key
+        this.data = data
     }
 }
 
@@ -53,14 +60,16 @@ class SpecificEdgeData implements EdgeData {
     }
 }
 
-// type sNodeData  = { bitId: string, version: string}
-// type sEdgeData = { depType: DepType, semDist?: 1 | 2 | 3 }
-
-
-// class Clock implements ClockInterface {
-//     currentTime: Date = new Date();
-//     constructor(h: number, m: number) { }
-// }
+class SpecificEdge implements Edge<SpecificEdgeData>{
+    sourceKey: string
+    targetKey: string
+    data: SpecificEdgeData
+    constructor(sourceKey: string, targetKey: string, data: SpecificEdgeData){
+        this.sourceKey = sourceKey
+        this.targetKey = targetKey
+        this.data = data
+    }
+}
 
 describe('GraphTester', () => {
     let g = new Graph<SpecificNodeData, SpecificEdgeData>()
@@ -295,6 +304,42 @@ describe('GraphTester', () => {
         expect.fail('should have thrown exception')
     })
 
+    it('should set all nodes in a batch', () => {
+        let nodeArr = [
+           new SpecificNode('1', new SpecificNodeData('1', '0.0.3')),
+           new SpecificNode('2', new SpecificNodeData('2', '0.0.3')),
+           new SpecificNode('3', new SpecificNodeData('3', '0.0.3'))
+        ]
+        let s = new Graph<SpecificNodeData, SpecificEdgeData>()
+        s.setNodes(nodeArr)
+        expect(s.nodeCount()).to.deep.equal(3)
+    })
+
+    it('should set all edges in a batch', () => {
+        let edgeArr = [
+            new SpecificEdge('1', '2', new SpecificEdgeData('peer', 2)),
+            new SpecificEdge('2', '3', new SpecificEdgeData('dev', 3))
+         ]
+         let s = new Graph<SpecificNodeData, SpecificEdgeData>()
+         s.setEdges(edgeArr)
+         expect(s.edgeCount()).to.deep.equal(2)
+    })
+
+    it('should construct a graph using constructor with nodes and edges as params', () => {
+        let nodeArr = [
+            new SpecificNode('1', new SpecificNodeData('1', '0.0.3')),
+            new SpecificNode('2', new SpecificNodeData('2', '0.0.3')),
+            new SpecificNode('3', new SpecificNodeData('3', '0.0.3'))
+         ]
+        let edgeArr = [
+        new SpecificEdge('1', '2', new SpecificEdgeData('peer', 2)),
+        new SpecificEdge('2', '3', new SpecificEdgeData('dev', 3)),
+        new SpecificEdge('3', '1', new SpecificEdgeData('peer', 2)),
+        ]
+        let s = new Graph<SpecificNodeData, SpecificEdgeData>(true, nodeArr, edgeArr)
+        expect(s.findCycles()).to.deep.equal([[ '3', '2', '1' ]])
+    })
+
 })
 
 function nodeFilterPredicateVersion(nodeData: SpecificNodeData){
@@ -320,3 +365,4 @@ function edgeFilterByPeerDep(edgeData: SpecificEdgeData){
 function edgeFilterByPeerOrDevDep(edgeData: SpecificEdgeData){
     return (edgeData.getDepType() === 'peer' || edgeData.getDepType() === 'dev')
 }
+

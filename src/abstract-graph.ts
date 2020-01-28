@@ -444,8 +444,8 @@ export class Graph<ND extends NodeData, ED extends EdgeData>{
             throw new Error("cyclic dependency")
         }
         let layers: string[][] = []
-        layers[0]=[nodeKey]
         let floor = 0
+        layers[floor]=[nodeKey]
         let rawLayers = this._innerRecurSuccessorsLayers([nodeKey], layers, floor, filterPredicate)
         return arrangeLayers(rawLayers, order)
     }
@@ -503,8 +503,11 @@ export class Graph<ND extends NodeData, ED extends EdgeData>{
      * As there may be more than one cycle in a graph this function return an array of these cycles, where each cycle is itself
      * represented by an array of ids for each node involved in that cycle.
     */
-   findCycles(){
-       return (findCycles(this.graph))
+   findCycles(g?: Graph<ND, ED>){
+        if(typeof(g) === 'undefined'){
+            return (findCycles(this.graph))
+        }
+       return (findCycles(g))
    }
 
     setGraphLabel(label:string){
