@@ -5,6 +5,13 @@ Cleargraph is a graph library extending [Graphlib](https://github.com/dagrejs/gr
  * Traversal over successors and predecessors
  * Use of user-defined filters on nodes and edges information and traversal
  * Strictly-typed implementation
+ 
+## Installation
+
+```sh
+npm install cleargraph
+yarn add cleargraph
+```
 
 ## Getting started
 
@@ -28,12 +35,6 @@ g.setNode(name: "moon", radius: 1737);
 g.setNode(name: "sun", radius: 696340);
 g.setEdge("moon", "earth", { relationType: 'orbits', proximity: 384400 });
 g.setEdge("earth", "sun", { relationType: 'orbits', proximity: 147240000 });
-```
-
-## Installation
-
-```sh
-npm install cleargraph
 ```
 
 ## Contributing
