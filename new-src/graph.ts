@@ -4,7 +4,7 @@ import { Toposort, distinct, StrAMethods } from './toposort';
 
 /**
  * The Graph abstractly represents a graph with arbitrary objects
- * associated with vertices and edges.  The graph provides basic
+ * associated with vertices and edges. The graph provides basic
  * operations to access and manipulate the data associated with
  * vertices and edges as well as the underlying structure.
  *
@@ -12,13 +12,26 @@ import { Toposort, distinct, StrAMethods } from './toposort';
  * @tparam ED the edge attribute type
  */
 export default class Graph<VD, ED> {
-  constructor(readonly edges: Edge<ED>[], readonly vertices: Vertex<VD>[]) {
+  constructor(
+    /**
+     * array of graph edges.
+     */
+    readonly edges: Edge<ED>[] = [], 
+
+    /**
+     * array of graph vertices.
+     */
+    readonly vertices: Vertex<VD>[] = []
+  ) {
     this.vertices.forEach(vertex => this.setVertex(vertex));
     this.edges.forEach(edge => this.setEdge(edge));
   }
 
   private _vertices = new Map<VertexId, Vertex<VD>>();
   private _edges = new Map<string, Edge<ED>>();
+
+  private srcIndex = new Map<VertexId, Edge<ED>>();
+  private dstIndex = new Map<VertexId, Edge<ED>>();
 
   /**
    * set a vertex on the graph.
@@ -35,6 +48,8 @@ export default class Graph<VD, ED> {
   setEdge(edge: Edge<ED>): Graph<VD, ED> {
     if (this._edges[edge.id]) return this;
     this.edges[edge.id] = edge;
+    this.srcIndex[edge.srcId] = edge;
+    this.dstIndex[edge.dstId] = edge;
     return this;
   }
 
@@ -86,10 +101,48 @@ export default class Graph<VD, ED> {
     return !!this._edges[edge.id];
   }
 
+  successors(vertex: Vertex<VD>): Vertex<VD>[] {
+    return this.edges
+      .filter((edge) => edge.srcId === vertex.id)
+      .map(edge => this.vertex(edge.dstId));
+  }
+
+  /**
+   * get a vertex from the graph by its ID.
+   */
+  vertex(id: VertexId): Vertex<VD> {
+    return this._vertices[id];
+  }
+
+  /**
+   * get an edge from the graph by its ID.
+   */
+  edge(id: string) {
+    return this._edges[id];
+  }
+
+  subgraph(verticesPredicate: (vertex: Vertex<VD>) => boolean, edgePredicate: (edge: Edge<VD>) => boolean): Graph<ED, VD> {
+
+  }
+
+  successorsSubgraph(vertex: Vertex<VD>) {
+    const successors = this.successors(vertex);
+    return this.subgraph(() => {}, () => {});
+  }
+
   /**
    * traverse the graph.
    */
-  traverse() {}
+  getSuccessors(vertex: Vertex<VD>, visitor: () => void) {
+    this.successors
+  }
+
+  /**
+   * serialize the graph to a json.
+   */
+  toString() {
+    return 
+  }
 
   /**
    * build graph from an array of edges.
@@ -103,3 +156,5 @@ export default class Graph<VD, ED> {
     return new Graph(edges, vertices);
   }
 }
+
+new Graph().successors().filter();
