@@ -238,8 +238,12 @@ describe('GraphTester', () => {
         expect(g.getSuccessorsGraphRecursively('a', edgeFilterByDevDep).nodes()).to.deep.equal([ 'a', 'c' ])
     })
 
-    it('should return all node successors recursively as layers - version 1', () => {
-        expect(g.getSuccessorsLayersRecursively('a')).to.deep.equal([["a"],["b","c"],["e"],["d"],["f"]])
+    it('should return all node successors recursively as layers - version 1 - only successors', () => {
+        expect(g.getSuccessorsLayersRecursively('a').successorLayers).to.deep.equal([["a"],["b","c"],["e"],["d"],["f"]])
+    })
+
+    it('should return all node successors recursively as layers - version 1 - only cycles - empty', () => {
+        expect(g.getSuccessorsLayersRecursively('a').cycles).to.deep.equal([])
     })
 
     it('should return all node successors recursively as layers - version 2', () => {
@@ -262,11 +266,11 @@ describe('GraphTester', () => {
         a.setEdge("f", "g", new SpecificEdgeData("dev"))
         a.setEdge("g", "h", new SpecificEdgeData("dev"))
         a.setEdge("e", "h", new SpecificEdgeData("dev", 1))
-        expect(a.getSuccessorsLayersRecursively('a')).to.deep.equal([["a"],["b"],["c"],["e","d"],["f"],["g"],["h"]])
+        expect(a.getSuccessorsLayersRecursively('a').successorLayers).to.deep.equal([["a"],["b"],["c"],["e","d"],["f"],["g"],["h"]])
     })
 
     it('should return all node successors recursively as layers with filter function', () => {
-        expect(g.getSuccessorsLayersRecursively('a', edgeFilterByDevDep)).to.deep.equal([ ['a'], ['c'] ])
+        expect(g.getSuccessorsLayersRecursively('a', edgeFilterByDevDep).successorLayers).to.deep.equal([ ['a'], ['c'] ])
     })
 
     it('should return all node successors recursively as an array', () => {
@@ -293,15 +297,10 @@ describe('GraphTester', () => {
         expect(g.getPredecessorsLayersRecursively('d')).to.deep.equal([["d"],["e"],["c"],["a"],["g"]])
     })
 
-    it('should throw error for circular dependencies for successors as layers', () => {
-        g.setEdge("f", "a", {depType: "regular"})
-        try{
-            g.getSuccessorsLayersRecursively('a')
-        } catch(e){
-            expect(e.message).to.equal('cyclic dependency')
-            return
-        } 
-        expect.fail('should have thrown exception')
+    it('should return correct successors as layers for cyclic dependencies', () => {
+        g.setEdge('f','a', new SpecificEdgeData("regular", 3))
+        let s = g.getSuccessorsLayersRecursively('a')
+        expect(g.getSuccessorsLayersRecursively('a').successorLayers).to.deep.equal([["b","c"],["e"],["f","d"],["a"]])
     })
 
     it('should set all nodes in a batch', () => {

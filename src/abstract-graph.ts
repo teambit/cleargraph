@@ -438,16 +438,16 @@ export class Graph<ND extends NodeData, ED extends EdgeData>{
      * The layers can be ordered either from the provided node key (order='fromSource', default) or from the last node(s) in the sorting (order='fromLastNodes')
      * Behavior is undefined for undirected graphs.
      */
-    getSuccessorsLayersRecursively(nodeKey: string, filterPredicate: (data: ED) => boolean = returnTrue, order:'fromSource' | 'fromLastNodes'= 'fromSource'): string[][] | never {
+    getSuccessorsLayersRecursively(nodeKey: string, filterPredicate: (data: ED) => boolean = returnTrue, order:'fromSource' | 'fromLastNodes'= 'fromSource'): {successorLayers: string[][] | never, cycles: string[][]} {
         let successorsGraph = this.getSuccessorsGraphRecursively(nodeKey, filterPredicate)
-        if(!isAcyclic(successorsGraph)){
-            throw new Error("cyclic dependency")
-        }
+        const cycles = this.findCycles(successorsGraph)
+        let visitedInCycles = []
         let layers: string[][] = []
         let floor = 0
         layers[floor]=[nodeKey]
-        let rawLayers = this._innerRecurSuccessorsLayers([nodeKey], layers, floor, filterPredicate)
-        return arrangeLayers(rawLayers, order)
+        let rawLayers = this._innerRecurSuccessorsLayers([nodeKey], layers, floor, filterPredicate, cycles, visitedInCycles)
+        const arrangedLayers = arrangeLayers(rawLayers, order)
+        return {successorLayers: arrangedLayers, cycles: cycles}
     }
 
     /**
@@ -478,16 +478,16 @@ export class Graph<ND extends NodeData, ED extends EdgeData>{
      * The layers can be ordered either from the provided node key (order='fromSource', default) or from the last node(s) in the sorting (order='fromLastNodes')
      * Behavior is undefined for undirected graphs.
      */
-    getPredecessorsLayersRecursively(nodeKey: string, filterPredicate: (data: ED) => boolean = returnTrue, order:'fromSource' | 'fromLastNodes'= 'fromSource'): string[][] | never {
-        let successorsGraph = this.getPredecessorsGraphRecursively(nodeKey, filterPredicate) // first getting as a graph to check if cyclic
-        if(!isAcyclic(successorsGraph)){
-            throw new Error("cyclic sub-graph")
-        }
+    getPredecessorsLayersRecursively(nodeKey: string, filterPredicate: (data: ED) => boolean = returnTrue, order:'fromSource' | 'fromLastNodes'= 'fromSource'): {predecessorLayers: string[][] | never, cycles: string[][]} {
+        let predecessorsGraph = this.getPredecessorsGraphRecursively(nodeKey, filterPredicate) // first getting as a graph to check if cyclic
+        const cycles = this.findCycles(predecessorsGraph)
+        let visitedInCycles = []
         let layers: string[][] = []
-        layers[0]=[nodeKey]
         let floor = 0
-        let rawLayers = this._innerRecurPredecessorsLayers([nodeKey], layers, floor, filterPredicate)
-        return arrangeLayers(rawLayers, order)
+        layers[floor]=[nodeKey]
+        let rawLayers = this._innerRecurPredecessorsLayers([nodeKey], layers, floor, filterPredicate, cycles, visitedInCycles)
+        const arrangedLayers = arrangeLayers(rawLayers, order)
+        return {predecessorLayers: arrangedLayers, cycles: cycles}
      }
 
     /**
@@ -572,14 +572,18 @@ export class Graph<ND extends NodeData, ED extends EdgeData>{
     private _innerRecurSuccessorsLayers(nodeKeys: string[],
                                         layers: string[][],
                                         floor: number,
-                                        filterPredicate: (data: ED) => boolean = returnTrue){  
+                                        filterPredicate: (data: ED) => boolean = returnTrue,
+                                        cycles: string[][]=[],
+                                        visitedInCycles: string[]=[]){  
         if (nodeKeys.length > 0) {
             let nextFloor = floor + 1
             layers.push([])
             layers[floor].forEach((successor:string) => {
-                layers[nextFloor] = layers[nextFloor].concat(this.successors(successor, filterPredicate))
-                });
-            return this._innerRecurSuccessorsLayers(layers[nextFloor], layers, nextFloor, filterPredicate)
+                if(visitedInCycles.indexOf(successor) == -1){
+                    visitedInCycles.push(successor)
+                    layers[nextFloor] = layers[nextFloor].concat(this.successors(successor, filterPredicate))
+                }});
+            return this._innerRecurSuccessorsLayers(layers[nextFloor], layers, nextFloor, filterPredicate, cycles, visitedInCycles)
         }
         return layers;
     }
@@ -618,18 +622,21 @@ export class Graph<ND extends NodeData, ED extends EdgeData>{
     private _innerRecurPredecessorsLayers(nodeKeys: string[],
                                         layers: string[][],
                                         floor: number,
-                                        filterPredicate: (data: ED) => boolean = returnTrue){  
+                                        filterPredicate: (data: ED) => boolean = returnTrue,
+                                        cycles: string[][],
+                                        visitedInCycles: string[]=[]){  
         if (nodeKeys.length > 0) {
             let nextFloor = floor + 1
             layers.push([])
             layers[floor].forEach((predecessor:string) => {
-                layers[nextFloor] = layers[nextFloor].concat(this.predecessors(predecessor, filterPredicate))
-            });
-            return this._innerRecurPredecessorsLayers(layers[nextFloor], layers, nextFloor, filterPredicate)
+                if(visitedInCycles.indexOf(predecessor) == -1){
+                    visitedInCycles.push(predecessor)
+                    layers[nextFloor] = layers[nextFloor].concat(this.predecessors(predecessor, filterPredicate))
+                 }});
+            return this._innerRecurPredecessorsLayers(layers[nextFloor], layers, nextFloor, filterPredicate, cycles, visitedInCycles)
             }
-        return layers;
+        return layers
         }
-
     }
 
 function returnTrue(){ return true }
@@ -651,7 +658,8 @@ function arrangeLayers(layers:string[][], order: 'fromSource' | 'fromLastNodes')
         i++
     }
     });
-   return order === 'fromSource' ? finalLayers.reverse() : finalLayers
+    finalLayers = finalLayers.filter(layer => layer.length > 0)
+    return order === 'fromSource' ? finalLayers.reverse() : finalLayers
 }
 
 
