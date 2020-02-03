@@ -1,6 +1,7 @@
 import { Node, NodeId } from './node';
 import { Edge, RawEdge, EdgeId } from './edge';
 import { Toposort, distinct, StrAMethods } from './toposort';
+import _ from 'lodash';
 
 /**
  * The Graph abstractly represents a graph with arbitrary objects
@@ -25,40 +26,33 @@ export default class Graph<ND, ED> {
      */
     readonly nodes: Node<ND>[] = []
   ) {
-    this.nodes.forEach(node => this.setnode(node));
+    this.nodes.forEach(node => this.setNode(node));
     this.edges.forEach(edge => this.setEdge(edge));
   }
 
   private _nodes = new Map<NodeId, Node<ND>>();
-  private _edges = new Map<string, Edge<ED>>();
-
-  private nodeIndex = new Map<NodeId, Node<ND>>();
-  private edgeIndex = new Map<EdgeId, Edge<ED>>();
+  private _edges = new Map<EdgeId, Edge<ED>>();
 
   /**
-   * set a node on the graph.
+   * set a new node on the graph or override existing node with the same key
    */
-  setnode(node: Node<ND>): Graph<ND, ED> {
-    if (this._nodes[node.id]) return this;
+  setNode(node: Node<ND>): Graph<ND, ED> {
     this._nodes[node.id] = node;
     return this;
   }
 
   /**
-   * set an edge on the graph.
+   * set a new edge on the graphor override existing node with the same source and target keys
    */
   setEdge(edge: Edge<ED>): Graph<ND, ED> {
-    if (this._edges[edge.id]) return this;
-    this.edges[edge.id] = edge;
-    // this.srcIndex[edge.sourceId] = edge;
-    // this.dstIndex[edge.targetId] = edge;
+    this.edges[Edge.edgeId(edge.sourceId, edge.targetId)] = edge;
     return this;
   }
 
   /**
    * set multiple edges on the graph.
    */
-  setEdges(edges: Edge<ED>[]) {
+  setEdges(edges: Edge<ED>[]): Graph<ND, ED> {
     edges.forEach(edge => this.setEdge(edge));
     return this;
   }
@@ -66,42 +60,98 @@ export default class Graph<ND, ED> {
   /**
    * set multiple nodes on the graph.
    */
-  setnodes(nodes: Node<ND>[]) {
-    nodes.forEach(node => this.setnode(node));
+  setNodes(nodes: Node<ND>[]) {
+    nodes.forEach(node => this.setNode(node));
     return this;
-  }
-
-  /**
-   * topologically sort the graph as an array.
-   */
-  topologicallySort(): Node<ND>[] {
-    const edges = this.edges.map((edge: Edge<ED>) => [edge.sourceId, edge.targetId]);
-
-    const ids = distinct(
-      // @ts-ignore
-      Toposort<string[]>(edges, new StrAMethods())
-        .map(node => node[0])
-        .reverse()
-    );
-
-    // @ts-ignore
-    return ids.map(id => this.nodes.find(node => node.id === id)).filter(_ => _ !== undefined);
-    // :TODO performance can be highly optimized in this area
   }
 
   /**
    * determines whether a node exists on the graph.
    */
-  hasnode(node: Node<ND>) {
-    return !!this._nodes[node.id];
+  hasNode(id: NodeId) {
+    return !!this._nodes[id];
   }
 
   /**
    * determine whether an edge exists on the graph.
    */
-  hasEdge(edge: Edge<ED>) {
-    return !!this._edges[edge.id];
+  hasEdge(sourceId: NodeId, targetId: NodeId) {
+    return !!this._edges[Edge.edgeId(sourceId, targetId)];
   }
+
+  /**
+   * get a node from the graph by its ID.
+   */
+  node(id: NodeId): Node<ND> {
+    return _.get(this._nodes, id);
+  }
+
+  /**
+   * get an edge from the graph by its ID.
+   */
+  edge(id: string) {
+    return _.get(this._edges, id);
+  }
+
+  /**
+   * get all nodes in the graph.
+   */
+  allNodes(){
+    return this._nodes;
+  }
+
+  /**
+   * get all edges in the graph.
+   */
+  allEdges(){
+    return this._edges;
+  }
+
+  /**
+   * return the number of nodes in the graph.
+   */
+  nodeCount(){
+    return Object.keys(this._nodes).length;
+  }
+
+  /**
+   * return the number of edges in the graph.
+   */
+  edgeCount(){
+    return Object.keys(this._edges).length;
+  }
+
+  /**
+   * delete a single node by id if exists. Note that all edges to and from this node will also be deleted.
+   */
+  deleteNode(id: NodeId):void{
+    const node = this.node(id)
+    if(typeof(node) === 'undefined') return;
+    node.nodeEdges.forEach((edgeId: EdgeId) => {
+      this._deleteEdgeById(edgeId);
+    });
+    delete this._nodes[id];
+  }
+
+  /**
+   * delete a single edge by source and target ids if exist.
+   */
+  deleteEdge(sourceId: string, targetId: string):void{
+    const edgeId = Edge.edgeId(sourceId, targetId);
+    const edge = this.edge(edgeId);
+    if(typeof(edge) === 'undefined') return;
+    delete this._edges[edgeId]
+  }
+
+  /**
+   * delete a single edge by its internal id.
+   */
+  _deleteEdgeById(id:EdgeId):void {
+    const edge = this.edge(id);
+    if(typeof(edge) === 'undefined') return;
+    delete this._edges[id]
+  }
+
 
   successors(node: Node<ND>): Node<ND>[] {
     return this.edges
@@ -109,23 +159,6 @@ export default class Graph<ND, ED> {
       .map(edge => this.node(edge.targetId));
   }
 
-  /**
-   * get a node from the graph by its ID.
-   */
-  node(id: NodeId): Node<ND> {
-    return this._nodes[id];
-  }
-
-  /**
-   * get an edge from the graph by its ID.
-   */
-  edge(id: string) {
-    return this._edges[id];
-  }
-
-//   subgraph(nodesPredicate: (node: node<ND>) => boolean, edgePredicate: (edge: Edge<ND>) => boolean): Graph<ED, ND> {
-
-//   }
 
   successorsSubgraph(node: Node<ND>) {
     // const successors = this.successors(node);
@@ -157,4 +190,27 @@ export default class Graph<ND, ED> {
 
     return new Graph(edges, nodes);
   }
+
+  /**
+   * topologically sort the graph as an array.
+   */
+  topologicallySort(): Node<ND>[] {
+    const edges = this.edges.map((edge: Edge<ED>) => [edge.sourceId, edge.targetId]);
+
+    const ids = distinct(
+      // @ts-ignore
+      Toposort<string[]>(edges, new StrAMethods())
+        .map(node => node[0])
+        .reverse()
+    );
+
+    // @ts-ignore
+    return ids.map(id => this.nodes.find(node => node.id === id)).filter(_ => _ !== undefined);
+    // :TODO performance can be highly optimized in this area
+  }
+
+  //   subgraph(nodesPredicate: (node: node<ND>) => boolean, edgePredicate: (edge: Edge<ND>) => boolean): Graph<ED, ND> {
+
+//   }
+
 }

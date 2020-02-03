@@ -29,15 +29,15 @@ export class Node<VD> {
     this._outEdges.push(edgeId)
   }
 
-  get inEdges(){
+  get inEdges(): EdgeId[] {
     return this._inEdges
   }
 
-  get outEdges(){
+  get outEdges(): EdgeId[] {
     return this._outEdges
   }
 
-  get nodeEdges(){
+  get nodeEdges(): EdgeId[] {
     return this._inEdges.concat(this._outEdges)
   }
 

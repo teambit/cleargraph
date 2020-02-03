@@ -29,8 +29,8 @@ export class Edge<ED> {
     return new Edge(object.sourceId, object.targetId, object.attr);
   }
 
-  get id(): EdgeId {
-    return `${this.sourceId}_${this.targetId}`;
+  static edgeId(sourceId: NodeId, targetId: NodeId): EdgeId {
+    return `${sourceId}_${targetId}`;
   }
 
   get nodes() {
