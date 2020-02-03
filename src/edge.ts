@@ -1,4 +1,12 @@
-import { VertexId } from './vertex';
+import { NodeId } from './node';
+
+export type EdgeId = string;
+
+export type RawEdge<ED> = {
+  sourceId: NodeId, 
+  targetId: NodeId, 
+  attr: ED
+}
 
 /**
  * A single directed edge consisting of a source id, target id,
@@ -11,23 +19,21 @@ import { VertexId } from './vertex';
  * @param attr The attribute associated with the edge
  */
 export class Edge<ED> {
-  constructor(readonly srcId: VertexId, readonly dstId: VertexId, readonly attr: ED) {}
-
-  get vertices() {
-    return [this.srcId, this.dstId];
+  constructor(readonly sourceId: NodeId, readonly targetId: NodeId, readonly attr: ED) {
+    this.sourceId = sourceId;
+    this.targetId = targetId;
+    this.attr = attr;
   }
 
   static fromObject<ED>(object: RawEdge<ED>) {
-    return new Edge(object.srcId, object.dstId, object.attr);
+    return new Edge(object.sourceId, object.targetId, object.attr);
   }
 
-  get id(): string {
-    return `${this.srcId}_${this.dstId}`;
+  get id(): EdgeId {
+    return `${this.sourceId}_${this.targetId}`;
+  }
+
+  get nodes() {
+    return [this.sourceId, this.targetId];
   }
 }
-
-export type RawEdge<ED> = {
-  srcId: VertexId;
-  dstId: VertexId;
-  attr: ED;
-};

@@ -1,17 +1,17 @@
-import { Vertex, VertexId } from './vertex';
-import { Edge, RawEdge } from './edge';
+import { Node, NodeId } from './node';
+import { Edge, RawEdge, EdgeId } from './edge';
 import { Toposort, distinct, StrAMethods } from './toposort';
 
 /**
  * The Graph abstractly represents a graph with arbitrary objects
- * associated with vertices and edges. The graph provides basic
+ * associated with nodes and edges. The graph provides basic
  * operations to access and manipulate the data associated with
- * vertices and edges as well as the underlying structure.
+ * nodes and edges as well as the underlying structure.
  *
- * @tparam VD the vertex attribute type
+ * @tparam ND the node attribute type
  * @tparam ED the edge attribute type
  */
-export default class Graph<VD, ED> {
+export default class Graph<ND, ED> {
   constructor(
     /**
      * array of graph edges.
@@ -19,37 +19,37 @@ export default class Graph<VD, ED> {
     readonly edges: Edge<ED>[] = [], 
 
     /**
-     * array of graph vertices.
+     * array of graph nodes.
      */
-    readonly vertices: Vertex<VD>[] = []
+    readonly nodes: Node<ND>[] = []
   ) {
-    this.vertices.forEach(vertex => this.setVertex(vertex));
+    this.nodes.forEach(node => this.setnode(node));
     this.edges.forEach(edge => this.setEdge(edge));
   }
 
-  private _vertices = new Map<VertexId, Vertex<VD>>();
+  private _nodes = new Map<NodeId, Node<ND>>();
   private _edges = new Map<string, Edge<ED>>();
 
-  private srcIndex = new Map<VertexId, Edge<ED>>();
-  private dstIndex = new Map<VertexId, Edge<ED>>();
+  private nodeIndex = new Map<NodeId, Node<ND>>();
+  private edgeIndex = new Map<EdgeId, Edge<ED>>();
 
   /**
-   * set a vertex on the graph.
+   * set a node on the graph.
    */
-  setVertex(vertex: Vertex<VD>): Graph<VD, ED> {
-    if (this._vertices[vertex.id]) return this;
-    this._vertices[vertex.id] = vertex;
+  setnode(node: Node<ND>): Graph<ND, ED> {
+    if (this._nodes[node.id]) return this;
+    this._nodes[node.id] = node;
     return this;
   }
 
   /**
    * set an edge on the graph.
    */
-  setEdge(edge: Edge<ED>): Graph<VD, ED> {
+  setEdge(edge: Edge<ED>): Graph<ND, ED> {
     if (this._edges[edge.id]) return this;
     this.edges[edge.id] = edge;
-    this.srcIndex[edge.srcId] = edge;
-    this.dstIndex[edge.dstId] = edge;
+    this.srcIndex[edge.sourceId] = edge;
+    this.dstIndex[edge.targetId] = edge;
     return this;
   }
 
@@ -62,18 +62,18 @@ export default class Graph<VD, ED> {
   }
 
   /**
-   * set multiple vertices on the graph.
+   * set multiple nodes on the graph.
    */
-  setVertices(vertices: Vertex<VD>[]) {
-    vertices.forEach(vertex => this.setVertex(vertex));
+  setnodes(nodes: Node<ND>[]) {
+    nodes.forEach(node => this.setnode(node));
     return this;
   }
 
   /**
    * topologically sort the graph as an array.
    */
-  topologicallySort(): Vertex<VD>[] {
-    const edges = this.edges.map((edge: Edge<ED>) => [edge.srcId, edge.dstId]);
+  topologicallySort(): Node<ND>[] {
+    const edges = this.edges.map((edge: Edge<ED>) => [edge.sourceId, edge.targetId]);
 
     const ids = distinct(
       // @ts-ignore
@@ -83,15 +83,15 @@ export default class Graph<VD, ED> {
     );
 
     // @ts-ignore
-    return ids.map(id => this.vertices.find(vertex => vertex.id === id)).filter(_ => _ !== undefined);
+    return ids.map(id => this.nodes.find(node => node.id === id)).filter(_ => _ !== undefined);
     // :TODO performance can be highly optimized in this area
   }
 
   /**
-   * determines whether a vertex exists on the graph.
+   * determines whether a node exists on the graph.
    */
-  hasVertex(vertex: Vertex<VD>) {
-    return !!this._vertices[vertex.id];
+  hasnode(node: Node<ND>) {
+    return !!this._nodes[node.id];
   }
 
   /**
@@ -101,17 +101,17 @@ export default class Graph<VD, ED> {
     return !!this._edges[edge.id];
   }
 
-  successors(vertex: Vertex<VD>): Vertex<VD>[] {
+  successors(node: Node<ND>): Node<ND>[] {
     return this.edges
-      .filter((edge) => edge.srcId === vertex.id)
-      .map(edge => this.vertex(edge.dstId));
+      .filter((edge) => edge.sourceId === node.id)
+      .map(edge => this.node(edge.targetId));
   }
 
   /**
-   * get a vertex from the graph by its ID.
+   * get a node from the graph by its ID.
    */
-  vertex(id: VertexId): Vertex<VD> {
-    return this._vertices[id];
+  node(id: NodeId): Node<ND> {
+    return this._nodes[id];
   }
 
   /**
@@ -121,19 +121,19 @@ export default class Graph<VD, ED> {
     return this._edges[id];
   }
 
-//   subgraph(verticesPredicate: (vertex: Vertex<VD>) => boolean, edgePredicate: (edge: Edge<VD>) => boolean): Graph<ED, VD> {
+//   subgraph(nodesPredicate: (node: node<ND>) => boolean, edgePredicate: (edge: Edge<ND>) => boolean): Graph<ED, ND> {
 
 //   }
 
-  successorsSubgraph(vertex: Vertex<VD>) {
-    // const successors = this.successors(vertex);
+  successorsSubgraph(node: Node<ND>) {
+    // const successors = this.successors(node);
     // return this.subgraph(() => {}, () => {});
   }
 
   /**
    * traverse the graph.
    */
-  getSuccessors(vertex: Vertex<VD>, visitor: () => void) {
+  getSuccessors(node: Node<ND>, visitor: () => void) {
     this.successors
   }
 
@@ -147,12 +147,12 @@ export default class Graph<VD, ED> {
   /**
    * build graph from an array of edges.
    */
-  static fromEdges<VD, ED>(rawEdges: RawEdge<ED>[]) {
+  static fromEdges<ND, ED>(rawEdges: RawEdge<ED>[]) {
     const edges = rawEdges.map(rawEdge => Edge.fromObject(rawEdge));
-    const vertices = edges
-      .flatMap(edge => edge.vertices)
-      .map(rawVertex => Vertex.fromObject({ id: rawVertex, attr: {} }));
+    const nodes = edges
+      .flatMap(edge => edge.nodes)
+      .map(rawnode => Node.fromObject({ id: rawnode, attr: {} }));
 
-    return new Graph(edges, vertices);
+    return new Graph(edges, nodes);
   }
 }
