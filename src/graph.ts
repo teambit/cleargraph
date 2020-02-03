@@ -48,8 +48,8 @@ export default class Graph<ND, ED> {
   setEdge(edge: Edge<ED>): Graph<ND, ED> {
     if (this._edges[edge.id]) return this;
     this.edges[edge.id] = edge;
-    this.srcIndex[edge.sourceId] = edge;
-    this.dstIndex[edge.targetId] = edge;
+    // this.srcIndex[edge.sourceId] = edge;
+    // this.dstIndex[edge.targetId] = edge;
     return this;
   }
 
