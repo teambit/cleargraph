@@ -1,5 +1,6 @@
 import { isEqual } from 'lodash';
 import { EdgeId } from './edge';
+import _ from 'lodash';
 
 export type NodeId = string;
 
@@ -27,6 +28,15 @@ export class Node<VD> {
 
   setOutEdge(edgeId: EdgeId){
     this._outEdges.push(edgeId)
+  }
+
+  deleteEdge(edgeId: EdgeId){
+    _.remove(this._inEdges, function(edge){
+      return edge === edgeId
+    })
+    _.remove(this._outEdges, function(edge){
+      return edge === edgeId
+    })
   }
 
   get inEdges(): EdgeId[] {

@@ -30,7 +30,15 @@ export class Edge<ED> {
   }
 
   static edgeId(sourceId: NodeId, targetId: NodeId): EdgeId {
-    return `${sourceId}_${targetId}`;
+    return `${sourceId}->${targetId}`;
+  }
+
+  static parseEdgeId(id: EdgeId): {sourceId: NodeId, targetId: NodeId} {
+    const spl = id.split("->");
+    if(spl.length === 2){
+      return {sourceId: spl[0], targetId:spl[1]}
+    }
+    return {sourceId:'', targetId:''}
   }
 
   get nodes() {
