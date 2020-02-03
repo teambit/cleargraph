@@ -11,7 +11,9 @@ import { Toposort, distinct, StrAMethods } from './toposort';
  * @tparam ND the node attribute type
  * @tparam ED the edge attribute type
  */
+
 export default class Graph<ND, ED> {
+
   constructor(
     /**
      * array of graph edges.
