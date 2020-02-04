@@ -97,6 +97,21 @@ describe('graphTester', () => {
             expect(keys).to.deep.equal([ 'g->a', 'a->b', 'a->c' ]);
         })
 
+        it('should find immediate successors of a given node', () => {
+            const keys = [...g.immediateSuccessors('c').keys()];
+            expect(keys).to.deep.equal([ 'd', 'e' ]);
+        })
+
+        it('should find immediate predecessors of a given node', () => {
+            const keys = [...g.immediatePredecessors('c').keys()];
+            expect(keys).to.deep.equal([ 'a' ]);
+        })
+
+        it('should find neighbors of a given node', () => {
+            const keys = [...g.neighbors('c').keys()];
+            expect(keys).to.deep.equal([ 'a', 'd', 'e' ]);
+        })
+
     })
     
 })

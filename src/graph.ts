@@ -216,11 +216,11 @@ export class Graph<ND, ED> {
   immediateSuccessors(nodeId: NodeId): Map<NodeId, Node<ND>>{
     let successors = new Map<NodeId, Node<ND>>();
     const node = this.node(nodeId);
-    if (typeof(node) === 'undefined') return successors;
+    if (node === undefined) return successors;
     node.outEdges.forEach(edgeId => {
       const { sourceId, targetId } = Edge.parseEdgeId(edgeId);
       const targetNode = this.node(targetId);
-      if(!!targetId && typeof(targetNode) !== 'undefined'){
+      if(!!targetId && targetNode !== undefined){
         successors.set(targetId, targetNode);
       }
     });
@@ -230,19 +230,20 @@ export class Graph<ND, ED> {
   immediatePredecessors(nodeId: NodeId): Map<NodeId, Node<ND>>{
     let predecessors = new Map<NodeId, Node<ND>>();
     const node = this.node(nodeId);
-    if (typeof(node) === 'undefined') return predecessors;
+    if (node === undefined) return predecessors;
     node.inEdges.forEach(edgeId => {
       const { sourceId, targetId } = Edge.parseEdgeId(edgeId);
       const sourceNode = this.node(sourceId);
-      if(!!sourceId && typeof(sourceNode) !== 'undefined'){
-        predecessors.set(targetId, sourceNode);
+      if(!!sourceId && sourceNode !== undefined){
+        predecessors.set(sourceId, sourceNode);
       }
     });
     return predecessors; 
   }
 
   neighbors(nodeId: NodeId): Map<NodeId, Node<ND>>{
-    return Object.assign(this.immediatePredecessors(nodeId), this.immediateSuccessors(nodeId))
+    let neighbors = new Map([...this.immediatePredecessors(nodeId), ...this.immediateSuccessors(nodeId)]);
+    return neighbors;
   }
 
 
