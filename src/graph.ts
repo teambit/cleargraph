@@ -213,29 +213,35 @@ export class Graph<ND, ED> {
     return newEdges;
   }
 
-  immediateSuccessors(nodeId: NodeId): Map<NodeId, Node<ND>>{
+  immediateSuccessors(nodeId: NodeId, filterPredicate: (edge: Edge<ED>) => boolean = returnTrue): Map<NodeId, Node<ND>>{
     let successors = new Map<NodeId, Node<ND>>();
     const node = this.node(nodeId);
     if (node === undefined) return successors;
     node.outEdges.forEach(edgeId => {
-      const { sourceId, targetId } = Edge.parseEdgeId(edgeId);
-      const targetNode = this.node(targetId);
-      if(!!targetId && targetNode !== undefined){
-        successors.set(targetId, targetNode);
+      const edge = this._edges.get(edgeId);
+      if(edge != undefined && filterPredicate(edge))
+      {  const { sourceId, targetId } = Edge.parseEdgeId(edgeId);
+        const targetNode = this.node(targetId);
+        if(!!targetId && targetNode !== undefined){
+          successors.set(targetId, targetNode);
+        }
       }
     });
     return successors; 
   }
 
-  immediatePredecessors(nodeId: NodeId): Map<NodeId, Node<ND>>{
+  immediatePredecessors(nodeId: NodeId, filterPredicate: (edge: Edge<ED>) => boolean = returnTrue): Map<NodeId, Node<ND>>{
     let predecessors = new Map<NodeId, Node<ND>>();
     const node = this.node(nodeId);
     if (node === undefined) return predecessors;
     node.inEdges.forEach(edgeId => {
-      const { sourceId, targetId } = Edge.parseEdgeId(edgeId);
-      const sourceNode = this.node(sourceId);
-      if(!!sourceId && sourceNode !== undefined){
-        predecessors.set(sourceId, sourceNode);
+      const edge = this._edges.get(edgeId);
+      if(edge != undefined && filterPredicate(edge))
+      {  const { sourceId, targetId } = Edge.parseEdgeId(edgeId);
+        const sourceNode = this.node(sourceId);
+        if(!!sourceId && sourceNode !== undefined){
+          predecessors.set(sourceId, sourceNode);
+        }
       }
     });
     return predecessors; 
@@ -246,10 +252,74 @@ export class Graph<ND, ED> {
     return neighbors;
   }
 
+  successorsSubgraph(node: Node<ND>, filterPredicate: (edge: Edge<ED>) => boolean = returnTrue): Graph<ND, ED>{
+    let g = new Graph<ND,ED>()
+    g.setNode(node)
+    return this._successorsSubgraphUtil(node.id, g, {}, filterPredicate)
+  }
 
-  successorsSubgraph(node: Node<ND>) {
-    // const successors = this.successors(node);
-    // return this.subgraph(() => {}, () => {});
+  _successorsSubgraphUtil(nodeId: NodeId, successorsGraph: Graph<ND,ED>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: Edge<ED>) => boolean = returnTrue): Graph<ND, ED> {
+    const successors = [...this.immediateSuccessors(nodeId, filterPredicate).keys()] || [];
+        if (successors.length > 0 && !visited[nodeId]) {
+            successors.forEach((successor:string) => {
+                visited[nodeId] = true;
+                const newNode = this._nodes.get(successor);
+                const newEdge = this._edges.get(Edge.edgeId(nodeId, successor));
+                if(newNode !== undefined && newEdge != undefined){
+                  successorsGraph.setNode(newNode);
+                  successorsGraph.setEdge(newEdge);
+                  return this._successorsSubgraphUtil(successor, successorsGraph, visited, filterPredicate);
+                }
+              });
+        }
+        return successorsGraph;
+  }
+
+  successorsArray(){
+
+  }
+
+  successorsLayers(){
+
+  }
+
+  predecessorsSubgraph(node: Node<ND>, filterPredicate: (edge: Edge<ED>) => boolean = returnTrue): Graph<ND, ED>{
+    let g = new Graph<ND,ED>()
+    g.setNode(node)
+    return this._predecessorsSubgraphUtil(node.id, g, {}, filterPredicate)
+  }
+
+  _predecessorsSubgraphUtil(nodeId: NodeId, predecessorsGraph: Graph<ND,ED>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: Edge<ED>) => boolean = returnTrue): Graph<ND, ED> {
+    const predecessors = [...this.immediatePredecessors(nodeId, filterPredicate).keys()] || [];
+        if (predecessors.length > 0 && !visited[nodeId]) {
+            predecessors.forEach((predecessor:string) => {
+                visited[nodeId] = true;
+                const newNode = this._nodes.get(predecessor);
+                const newEdge = this._edges.get(Edge.edgeId(predecessor, nodeId));
+                if(newNode !== undefined && newEdge != undefined){
+                  predecessorsGraph.setNode(newNode);
+                  predecessorsGraph.setEdge(newEdge);
+                  return this._predecessorsSubgraphUtil(predecessor, predecessorsGraph, visited, filterPredicate);
+                }
+              });
+        }
+        return predecessorsGraph;
+  }
+
+  predecessorsArray(){
+
+  }
+
+  predecessorsLayers(){
+
+  }
+
+  findCycles(){
+
+  }
+
+  isCyclic(){
+
   }
 
 
@@ -260,18 +330,7 @@ export class Graph<ND, ED> {
     return 
   }
 
-  /**
-   * build graph from an array of edges.
-   */
-  static fromEdges<ND, ED>(rawEdges: RawEdge<ED>[]) {
-    const edges = rawEdges.map(rawEdge => Edge.fromObject(rawEdge));
-    const nodes = edges
-      .flatMap(edge => edge.nodes)
-      .map(rawnode => Node.fromObject({ id: rawnode, attr: {} }));
-
-    return new Graph(nodes, edges);
-  }
-
+  
   /**
    * topologically sort the graph as an array.
    */
@@ -295,3 +354,5 @@ export class Graph<ND, ED> {
 //   }
 
 }
+
+function returnTrue(){ return true; }

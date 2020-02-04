@@ -112,6 +112,24 @@ describe('graphTester', () => {
             expect(keys).to.deep.equal([ 'a', 'd', 'e' ]);
         })
 
+        it('should find successors sub-graph of a given node', () => {
+            const node = g.node('c');
+            const subgraph = !!node? g.successorsSubgraph(node) : new Graph()
+            const nodeKeys = [...subgraph.allNodes().keys()];
+            const edgeKeys = [...subgraph.allEdges().keys()];
+            expect(nodeKeys).to.deep.equal([ 'c', 'd', 'f', 'e' ]);
+            expect(edgeKeys).to.deep.equal([ 'c->d', 'd->f', 'c->e', 'e->d' ]);
+        })
+
+        it('should find predecessors sub-graph of a given node', () => {
+            const node = g.node('d');
+            const subgraph = !!node? g.predecessorsSubgraph(node) : new Graph()
+            const nodeKeys = [...subgraph.allNodes().keys()];
+            const edgeKeys = [...subgraph.allEdges().keys()];
+            expect(nodeKeys).to.deep.equal([ 'd', 'c', 'a', 'g', 'e' ]);
+            expect(edgeKeys).to.deep.equal(["c->d","a->c","g->a","e->d","c->e"]);
+        })
+        
     })
     
 })
