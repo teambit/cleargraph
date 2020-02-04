@@ -13,21 +13,20 @@ import _ from 'lodash';
  * @tparam ED the edge attribute type
  */
 
-export default class Graph<ND, ED> {
+export class Graph<ND, ED> {
 
   constructor(
     /**
-     * array of graph edges.
-     */
-    readonly edges: Edge<ED>[] = [], 
-
-    /**
      * array of graph nodes.
      */
-    readonly nodes: Node<ND>[] = []
+    nodes: Node<ND>[] = [],
+    /**
+     * array of graph edges.
+     */
+    edges: Edge<ED>[] = []
   ) {
-    this.nodes.forEach(node => this.setNode(node));
-    this.edges.forEach(edge => this.setEdge(edge));
+    nodes.forEach(node => this.setNode(node));
+    edges.forEach(edge => this.setEdge(edge));
   }
 
   private _nodes = new Map<NodeId, Node<ND>>();
@@ -37,7 +36,7 @@ export default class Graph<ND, ED> {
    * set a new node on the graph or override existing node with the same key
    */
   setNode(node: Node<ND>): Graph<ND, ED> {
-    this._nodes[node.id] = node;
+    this._nodes.set(node.id, node);
     return this;
   }
 
@@ -46,9 +45,25 @@ export default class Graph<ND, ED> {
    */
   setEdge(edge: Edge<ED>): Graph<ND, ED> {
     const id = Edge.edgeId(edge.sourceId, edge.targetId);
-    this.edges[id] = edge;
-    this.nodes[edge.sourceId].setOutEdge(id);
-    this.nodes[edge.targetId].setInEdge(id);
+    this._edges.set(id, edge);
+    if(this._nodes.has(edge.sourceId)) {
+      let sourceNode = this._nodes.get(edge.sourceId);
+      if(sourceNode !== undefined){
+        sourceNode.setOutEdge(id);
+      }
+    }
+    else {
+      throw Error('source node does not exist')
+    }
+    if(this._nodes.has(edge.targetId)){
+      let targetNode = this._nodes.get(edge.targetId);
+      if(targetNode !== undefined){
+        targetNode.setInEdge(id);
+      }
+    }
+    else {
+      throw Error('target node does not exist')
+    }
     return this;
   }
 
@@ -72,28 +87,28 @@ export default class Graph<ND, ED> {
    * determines whether a node exists on the graph.
    */
   hasNode(id: NodeId): boolean {
-    return !!this._nodes[id];
+    return this._nodes.has(id);
   }
 
   /**
    * determine whether an edge exists on the graph.
    */
   hasEdge(sourceId: NodeId, targetId: NodeId): boolean {
-    return !!this._edges[Edge.edgeId(sourceId, targetId)];
+    return this._edges.has(Edge.edgeId(sourceId, targetId));
   }
 
   /**
    * get a node from the graph by its ID. Undefined if id is not in graph.
    */
   node(id: NodeId): Node<ND> | undefined{
-    return _.get(this._nodes, id);
+    return this._nodes.get(id);
   }
 
   /**
    * get an edge from the graph by its ID. Undefined if id is not in graph.
    */
-  edge(id: string): Edge<ED> | undefined {
-    return _.get(this._edges, id);
+  edge(sourceId: string, targetId: string): Edge<ED> | undefined {
+    return this._edges.get(Edge.edgeId(sourceId, targetId));
   }
 
   /**
@@ -114,14 +129,14 @@ export default class Graph<ND, ED> {
    * return the number of nodes in the graph.
    */
   nodeCount(): number{
-    return Object.keys(this._nodes).length;
+    return [...this._nodes.keys()].length;
   }
 
   /**
    * return the number of edges in the graph.
    */
   edgeCount(): number{
-    return Object.keys(this._edges).length;
+    return [...this._edges.keys()].length;
   }
 
   /**
@@ -131,41 +146,39 @@ export default class Graph<ND, ED> {
     const node = this.node(id);
     if(typeof(node) === 'undefined') return;
     node.nodeEdges.forEach((edgeId: EdgeId) => {
-      this._deleteEdgeById(edgeId);
+      const { sourceId, targetId } = Edge.parseEdgeId(edgeId);
+      this.deleteEdge(sourceId, targetId);
     });
-    delete this._nodes[id];
+    this._nodes.delete(id);
   }
 
   /**
    * delete a single edge by source and target ids if exist.
    */
   deleteEdge(sourceId: string, targetId: string): void{
-    this._deleteEdgeById(Edge.edgeId(sourceId, targetId));
-  }
-
-  /**
-   * delete a single edge by its internal id.
-   */
-  _deleteEdgeById(id:EdgeId): void {
-    const edge = this.edge(id);
-    if(typeof(edge) === 'undefined') return;
-    const { sourceId, targetId } = Edge.parseEdgeId(id);
-    if(sourceId in this._nodes){
-      this._nodes[sourceId].deleteEdge(id);
+    const edgeId = Edge.edgeId(sourceId, targetId);
+    const edge = this._edges.get(edgeId);
+    if(edge !== undefined){
+      let sourceNode = this._nodes.get(sourceId);
+      if(sourceNode !== undefined){
+        sourceNode.deleteEdge(edgeId);
+      }
+      let targetNode = this._nodes.get(targetId);
+      if(targetNode !== undefined){
+        targetNode.deleteEdge(edgeId);
+      }
     }
-    if(targetId in this._nodes){
-      this._nodes[targetId].deleteEdge(id);
-    }
-    delete this._edges[id];
+    this._edges.delete(edgeId)
   }
 
   inEdges(nodeId: NodeId): Map<EdgeId, Edge<ED>>{
     let newEdges = new Map<EdgeId, Edge<ED>>();
     const node = this.node(nodeId);
-    if (typeof(node) === 'undefined') return newEdges;
+    if (node === undefined) return newEdges;
     node.inEdges.forEach(edgeId => {
-      let edge = this.edge(edgeId);
-      if(typeof edge !== 'undefined'){
+      let { sourceId, targetId } = Edge.parseEdgeId(edgeId)
+      let edge = this.edge(sourceId, targetId);
+      if(edge !== undefined){
         newEdges.set(edgeId, edge);
       }
     });
@@ -175,10 +188,11 @@ export default class Graph<ND, ED> {
   outEdges(nodeId: NodeId): Map<EdgeId, Edge<ED>>{
     let newEdges = new Map<EdgeId, Edge<ED>>();
     const node = this.node(nodeId);
-    if (typeof(node) === 'undefined') return newEdges;
+    if (node === undefined) return newEdges;
     node.outEdges.forEach(edgeId => {
-      let edge = this.edge(edgeId);
-      if(typeof edge !== 'undefined'){
+      let { sourceId, targetId } = Edge.parseEdgeId(edgeId)
+      let edge = this.edge(sourceId, targetId);
+      if(edge !== undefined){
         newEdges.set(edgeId, edge);
       }
     });
@@ -188,10 +202,11 @@ export default class Graph<ND, ED> {
   nodeEdges(nodeId: NodeId): Map<EdgeId, Edge<ED>>{
     let newEdges = new Map<EdgeId, Edge<ED>>();
     const node = this.node(nodeId);
-    if (typeof(node) === 'undefined') return newEdges;
+    if (node === undefined) return newEdges;
     node.nodeEdges.forEach(edgeId => {
-      let edge = this.edge(edgeId);
-      if(typeof edge !== 'undefined'){
+      let { sourceId, targetId } = Edge.parseEdgeId(edgeId)
+      let edge = this.edge(sourceId, targetId);
+      if(edge !== undefined){
         newEdges.set(edgeId, edge);
       }
     });
@@ -253,26 +268,26 @@ export default class Graph<ND, ED> {
       .flatMap(edge => edge.nodes)
       .map(rawnode => Node.fromObject({ id: rawnode, attr: {} }));
 
-    return new Graph(edges, nodes);
+    return new Graph(nodes, edges);
   }
 
   /**
    * topologically sort the graph as an array.
    */
-  topologicallySort(): Node<ND>[] {
-    const edges = this.edges.map((edge: Edge<ED>) => [edge.sourceId, edge.targetId]);
+  // topologicallySort(): Node<ND>[] {
+  //   const edges = this._edges.map((edge: Edge<ED>) => [edge.sourceId, edge.targetId]);
 
-    const ids = distinct(
-      // @ts-ignore
-      Toposort<string[]>(edges, new StrAMethods())
-        .map(node => node[0])
-        .reverse()
-    );
+  //   const ids = distinct(
+  //     // @ts-ignore
+  //     Toposort<string[]>(edges, new StrAMethods())
+  //       .map(node => node[0])
+  //       .reverse()
+  //   );
 
-    // @ts-ignore
-    return ids.map(id => this.nodes.find(node => node.id === id)).filter(_ => _ !== undefined);
-    // :TODO performance can be highly optimized in this area
-  }
+  //   // @ts-ignore
+  //   return ids.map(id => this._nodes.find(node => node.id === id)).filter(_ => _ !== undefined);
+  //   // :TODO performance can be highly optimized in this area
+  // }
 
   //   subgraph(nodesPredicate: (node: node<ND>) => boolean, edgePredicate: (edge: Edge<ND>) => boolean): Graph<ED, ND> {
 

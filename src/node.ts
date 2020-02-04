@@ -4,14 +4,14 @@ import _ from 'lodash';
 
 export type NodeId = string;
 
-export class Node<VD> {
+export class Node<ND> {
   readonly id: NodeId;
-  readonly attr: VD;
+  readonly attr: ND;
   _inEdges: EdgeId[];
   _outEdges: EdgeId[];
   constructor(
     id: NodeId, 
-    attr: VD,
+    attr: ND,
     inEdges?: EdgeId[],
     outEdges?: EdgeId[]
     
@@ -51,12 +51,12 @@ export class Node<VD> {
     return this._inEdges.concat(this._outEdges)
   }
 
-  equals(node: Node<VD>) {
+  equals(node: Node<ND>) {
     if (this.id !== node.id) return false;
     return isEqual(this.attr, node.attr);
   }
 
-  static fromObject<VD>(object: { id: NodeId; attr: VD }) {
+  static fromObject<ND>(object: { id: NodeId; attr: ND }) {
     return new Node(object.id, object.attr);
   }
 }
