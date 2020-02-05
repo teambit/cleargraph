@@ -1,5 +1,3 @@
-export { Graph } from './abstract-graph'
-export { Node } from './node'
-export { NodeData } from './node-data'
-export { Edge} from './edge'
-export { EdgeData} from './edge-data'
+export { Graph } from './graph';
+export { Vertex } from './vertex';
+export { Edge } from './edge';

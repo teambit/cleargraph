@@ -11,7 +11,7 @@ import { Toposort, distinct, StrAMethods } from './toposort';
  * @tparam VD the vertex attribute type
  * @tparam ED the edge attribute type
  */
-export default class Graph<VD, ED> {
+export class Graph<VD, ED> {
   constructor(
     /**
      * array of graph edges.
@@ -121,13 +121,13 @@ export default class Graph<VD, ED> {
     return this._edges[id];
   }
 
-  subgraph(verticesPredicate: (vertex: Vertex<VD>) => boolean, edgePredicate: (edge: Edge<VD>) => boolean): Graph<ED, VD> {
+//   subgraph(verticesPredicate: (vertex: Vertex<VD>) => boolean, edgePredicate: (edge: Edge<VD>) => boolean): Graph<ED, VD> {
 
-  }
+//   }
 
   successorsSubgraph(vertex: Vertex<VD>) {
-    const successors = this.successors(vertex);
-    return this.subgraph(() => {}, () => {});
+    // const successors = this.successors(vertex);
+    // return this.subgraph(() => {}, () => {});
   }
 
   /**
@@ -156,5 +156,3 @@ export default class Graph<VD, ED> {
     return new Graph(edges, vertices);
   }
 }
-
-new Graph().successors().filter();
