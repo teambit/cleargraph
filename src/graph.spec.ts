@@ -1,7 +1,8 @@
-import { Graph } from "./index"
+import { Graph, CyclicError } from "./index"
 import { Node } from "./index";
 import { Edge } from "./index";
 import { expect } from "chai";
+
 
 type NodeData = {name: string, version: string}
 type EdgeData = {dep: string, semDist: number}
@@ -112,7 +113,7 @@ describe('graphTester', () => {
             expect(keys).to.deep.equal([ 'a', 'd', 'e' ]);
         })
 
-        it('should find successors sub-graph of a given node', () => {
+        it('should find recursive successors sub-graph of a given node', () => {
             const node = g.node('c');
             const subgraph = !!node? g.successorsSubgraph(node) : new Graph()
             const nodeKeys = [...subgraph.allNodes().keys()];
@@ -121,7 +122,7 @@ describe('graphTester', () => {
             expect(edgeKeys).to.deep.equal([ 'c->d', 'd->f', 'c->e', 'e->d' ]);
         })
 
-        it('should find predecessors sub-graph of a given node', () => {
+        it('should find recursive predecessors sub-graph of a given node', () => {
             const node = g.node('d');
             const subgraph = !!node? g.predecessorsSubgraph(node) : new Graph()
             const nodeKeys = [...subgraph.allNodes().keys()];
@@ -129,7 +130,42 @@ describe('graphTester', () => {
             expect(nodeKeys).to.deep.equal([ 'd', 'c', 'a', 'g', 'e' ]);
             expect(edgeKeys).to.deep.equal(["c->d","a->c","g->a","e->d","c->e"]);
         })
-        
+
+        it('should find recursive successors array of a given node', () => {
+            const node = g.node('c');
+            const arr = !!node? g.successorsArray(node).map(elem => elem.id) : [];
+            expect(arr).to.deep.equal([ 'd', 'f', 'e' ]);
+        })
+
+        it('should find recursive predecessors array of a given node', () => {
+            const node = g.node('d');
+            const arr = !!node? g.predecessorsArray(node).map(elem => elem.id) : [];
+            expect(arr).to.deep.equal([ 'c', 'a', 'g', 'e' ]);
+        })
+
+        it('should perform topological sort on the graph', () => {
+            const res = g.toposort();
+            expect(res).to.deep.equal([ 'g', 'a', 'b', 'c', 'e', 'd', 'f' ]);
+        })
+
+        it('should perform topological sort on specific nodes', () => {
+            const res = g.toposort(['e', 'b', 'a']);
+            expect(res).to.deep.equal([ 'a', 'b', 'e' ]);
+        })
+
+        it('should perform topological sort on graph with unconnected components', () => {
+            g.deleteEdge('g', 'a');
+            const res = g.toposort();
+            expect(res).to.deep.equal([ 'a', 'b', 'c', 'e', 'd', 'f', 'g' ]);
+            g.setEdge(new Edge('g','a', {dep:'dev', semDist:1}));
+        })
+
+        it('should throw cyclic dependencies error on topological sort given graph with cycles', () => {
+            const f = function () {g.toposort()};
+            g.setEdge(new Edge('f','g', {dep:'dev', semDist:2}));
+            expect(f).to.throw(CyclicError);
+        })
+
     })
     
 })

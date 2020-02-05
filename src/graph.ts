@@ -1,6 +1,6 @@
-import { Node, NodeId } from './node';
-import { Edge, RawEdge, EdgeId } from './edge';
-import { Toposort, distinct, StrAMethods } from './toposort';
+import { Node, NodeId } from './index';
+import { Edge, EdgeId } from './index';
+import { CyclicError } from './index'
 import _ from 'lodash';
 
 /**
@@ -260,28 +260,47 @@ export class Graph<ND, ED> {
 
   _successorsSubgraphUtil(nodeId: NodeId, successorsGraph: Graph<ND,ED>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: Edge<ED>) => boolean = returnTrue): Graph<ND, ED> {
     const successors = [...this.immediateSuccessors(nodeId, filterPredicate).keys()] || [];
+    if (successors.length > 0 && !visited[nodeId]) {
+        successors.forEach((successor:string) => {
+            visited[nodeId] = true;
+            const newNode = this._nodes.get(successor);
+            const newEdge = this._edges.get(Edge.edgeId(nodeId, successor));
+            if(newNode !== undefined && newEdge != undefined){
+              successorsGraph.setNode(newNode);
+              successorsGraph.setEdge(newEdge);
+              return this._successorsSubgraphUtil(successor, successorsGraph, visited, filterPredicate);
+            }
+          });
+    }
+    return successorsGraph;
+  }
+
+  successorsArray(node: Node<ND>, filterPredicate: (data: Edge<ED>) => boolean = returnTrue): Node<ND>[]{
+    const successorIds = _.uniq(this._successorsArrayUtil(node.id, [], {}, filterPredicate));
+    let successors: Node<ND>[] = []
+    successorIds.forEach((id:NodeId) => {
+      let node = this.node(id);
+      if (node != undefined){
+        successors.push(node);
+      }
+    });
+    return successors;
+  }
+
+  _successorsArrayUtil(nodeId: string,
+                       successorsList: string[] = [],
+                       visited: { [key: string]: boolean } = {},
+                       filterPredicate: (data: Edge<ED>) => boolean = returnTrue): NodeId[]{  
+        const successors = [...this.immediateSuccessors(nodeId, filterPredicate).keys()] || [];
         if (successors.length > 0 && !visited[nodeId]) {
             successors.forEach((successor:string) => {
-                visited[nodeId] = true;
-                const newNode = this._nodes.get(successor);
-                const newEdge = this._edges.get(Edge.edgeId(nodeId, successor));
-                if(newNode !== undefined && newEdge != undefined){
-                  successorsGraph.setNode(newNode);
-                  successorsGraph.setEdge(newEdge);
-                  return this._successorsSubgraphUtil(successor, successorsGraph, visited, filterPredicate);
-                }
-              });
+            visited[nodeId] = true;
+            successorsList.push(successor);
+            return this._successorsArrayUtil(successor, successorsList, visited, filterPredicate);
+            });
         }
-        return successorsGraph;
-  }
-
-  successorsArray(){
-
-  }
-
-  successorsLayers(){
-
-  }
+    return successorsList;
+    }
 
   predecessorsSubgraph(node: Node<ND>, filterPredicate: (edge: Edge<ED>) => boolean = returnTrue): Graph<ND, ED>{
     let g = new Graph<ND,ED>()
@@ -306,53 +325,135 @@ export class Graph<ND, ED> {
         return predecessorsGraph;
   }
 
-  predecessorsArray(){
-
+  predecessorsArray(node: Node<ND>, filterPredicate: (data: Edge<ED>) => boolean = returnTrue): Node<ND>[]{
+    const predecessorIds = _.uniq(this._predecessorsArrayUtil(node.id, [], {}, filterPredicate));
+    let predecessors: Node<ND>[] = []
+    predecessorIds.forEach((id:NodeId) => {
+      let node = this.node(id);
+      if (node != undefined){
+        predecessors.push(node);
+      }
+    });
+    return predecessors;
   }
 
-  predecessorsLayers(){
+  _predecessorsArrayUtil(nodeId: string,
+                       predecessorsList: string[] = [],
+                       visited: { [key: string]: boolean } = {},
+                       filterPredicate: (data: Edge<ED>) => boolean = returnTrue): NodeId[]{  
+        const predecessors = [...this.immediatePredecessors(nodeId, filterPredicate).keys()] || [];
+        if (predecessors.length > 0 && !visited[nodeId]) {
+            predecessors.forEach((predecessor:string) => {
+            visited[nodeId] = true;
+            predecessorsList.push(predecessor);
+            return this._predecessorsArrayUtil(predecessor, predecessorsList, visited, filterPredicate);
+            });
+        }
+    return predecessorsList;
+    }
 
+  toposort(initialNodes?: NodeId[]){
+    let res = this._toposort();
+    if(!initialNodes){
+      return res;
+    }
+    return res.filter(id =>initialNodes.includes(id));
   }
 
-  findCycles(){
-
+  _transformEdges(){
+    let edges: string [][] = [];
+    this._edges.forEach(originalEdge => {
+      edges.push([originalEdge.sourceId, originalEdge.targetId])
+    });
+    return edges;
   }
 
-  isCyclic(){
+  _toposort() {
+    const nodes: NodeId[] = [...this._nodes.keys()]
+    const edges = this._transformEdges();
+    var cursor = nodes.length
+      , sorted = new Array(cursor)
+      , visited = {}
+      , i = cursor
+      , outgoingEdges = makeOutgoingEdges(edges)
+      , nodesHash = makeNodesHash(nodes);
+  
+    // check for unknown nodes
+    edges.forEach(function(edge) {
+      if (!nodesHash.has(edge[0]) || !nodesHash.has(edge[1])) {
+        throw new Error('Unknown node. There is an unknown node in the supplied edges.');
+      }
+    })
 
+    while (i--) {
+      if (!visited[i]) visit(nodes[i], i, new Set());
+    }
+
+    return sorted;
+
+    function visit(node, i, predecessors) {
+      if(predecessors.has(node)) {
+        var nodeRep;
+        try {
+          nodeRep = ", node was:" + JSON.stringify(node);
+        } catch(e) {
+          nodeRep = "";
+        }
+        throw new CyclicError('Cyclic dependency' + nodeRep);
+      }
+
+      if (!nodesHash.has(node)) {
+        throw new Error('Found unknown node. Make sure to provide all involved nodes. Unknown node: '+JSON.stringify(node));
+      }
+
+      if (visited[i]) return;
+      visited[i] = true;
+
+      var outgoing = outgoingEdges.get(node) || new Set();
+      outgoing = Array.from(outgoing);
+
+      if (i = outgoing.length) {
+        predecessors.add(node);
+        do {
+          var child = outgoing[--i]
+          visit(child, nodesHash.get(child), predecessors);
+        } while (i)
+        predecessors.delete(node);
+      }
+
+      sorted[--cursor] = node;
+    }
   }
-
+  
 
   /**
    * serialize the graph to a json.
    */
   toString() {
+    //TODO
     return 
   }
 
   
-  /**
-   * topologically sort the graph as an array.
-   */
-  // topologicallySort(): Node<ND>[] {
-  //   const edges = this._edges.map((edge: Edge<ED>) => [edge.sourceId, edge.targetId]);
-
-  //   const ids = distinct(
-  //     // @ts-ignore
-  //     Toposort<string[]>(edges, new StrAMethods())
-  //       .map(node => node[0])
-  //       .reverse()
-  //   );
-
-  //   // @ts-ignore
-  //   return ids.map(id => this._nodes.find(node => node.id === id)).filter(_ => _ !== undefined);
-  //   // :TODO performance can be highly optimized in this area
-  // }
-
-  //   subgraph(nodesPredicate: (node: node<ND>) => boolean, edgePredicate: (edge: Edge<ND>) => boolean): Graph<ED, ND> {
-
-//   }
-
 }
 
 function returnTrue(){ return true; }
+
+function makeOutgoingEdges(arr){
+  var edges = new Map()
+  for (var i = 0, len = arr.length; i < len; i++) {
+    var edge = arr[i]
+    if (!edges.has(edge[0])) edges.set(edge[0], new Set())
+    if (!edges.has(edge[1])) edges.set(edge[1], new Set())
+    edges.get(edge[0]).add(edge[1])
+  }
+  return edges
+}
+
+function makeNodesHash(arr){
+  var res = new Map()
+  for (var i = 0, len = arr.length; i < len; i++) {
+    res.set(arr[i], i)
+  }
+  return res
+}
