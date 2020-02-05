@@ -1,3 +1,4 @@
-export { Graph } from './graph';
-export { Vertex } from './vertex';
-export { Edge } from './edge';
+export { Edge, EdgeId } from './edge'
+export { Node, NodeId } from './node'
+export { CyclicError } from './error'
+export { Graph } from './graph'
