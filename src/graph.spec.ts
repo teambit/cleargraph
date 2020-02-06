@@ -2,6 +2,8 @@ import { Graph, CyclicError } from "./index"
 import { Node } from "./index";
 import { Edge } from "./index";
 import { expect } from "chai";
+import { Graph as graphlib} from 'graphlib';
+import { findCycles } from 'graphlib/lib/alg'
 
 
 type NodeData = {name: string, version: string}
@@ -31,6 +33,10 @@ describe('graphTester', () => {
     let g = new Graph<NodeData, EdgeData>(nodeArr, edgeArr);
     
     describe('basicTester', () => {
+        it('should return false for acyclic graph', () => {
+            expect(g.isCyclic()).to.be.false;
+        })
+
         it('should return node', () => {
             expect(g.node("b")?.attr).to.deep.equal({ name: 'comp2', version: '2.0.0'});
         })
@@ -99,12 +105,12 @@ describe('graphTester', () => {
         })
 
         it('should find immediate successors of a given node', () => {
-            const keys = [...g.immediateSuccessors('c').keys()];
+            const keys = [...g.successors('c').keys()];
             expect(keys).to.deep.equal([ 'd', 'e' ]);
         })
 
         it('should find immediate predecessors of a given node', () => {
-            const keys = [...g.immediatePredecessors('c').keys()];
+            const keys = [...g.predecessors('c').keys()];
             expect(keys).to.deep.equal([ 'a' ]);
         })
 
@@ -160,12 +166,42 @@ describe('graphTester', () => {
             g.setEdge(new Edge('g','a', {dep:'dev', semDist:1}));
         })
 
-        it('should throw cyclic dependencies error on topological sort given graph with cycles', () => {
-            const f = function () {g.toposort()};
-            g.setEdge(new Edge('f','g', {dep:'dev', semDist:2}));
-            expect(f).to.throw(CyclicError);
-        })
+        describe('check cyclic', () => {
+            before(() => {
+                g.setNode(new Node('k', {name: 'comp8', version: '1.0.0'}));
+                g.setNode(new Node('z', {name: 'comp8', version: '1.0.0'}));
+                g.setNode(new Node('m', {name: 'comp8', version: '1.0.0'}));
+                g.setNode(new Node('n', {name: 'comp8', version: '1.0.0'}));
+                g.setNode(new Node('l', {name: 'comp8', version: '1.0.0'}));
+                g.setEdge(new Edge('k','f', {dep:'dev', semDist:2}));
+                g.setEdge(new Edge('f','g', {dep:'dev', semDist:2}));
+                g.setEdge(new Edge('f','z', {dep:'dev', semDist:2}));
+                g.setEdge(new Edge('m','d', {dep:'dev', semDist:2}));
+                g.setEdge(new Edge('n','m', {dep:'dev', semDist:2}));
+                g.setEdge(new Edge('l','n', {dep:'dev', semDist:2}));
+                g.setEdge(new Edge('m','l', {dep:'dev', semDist:2}));
+            })
 
-    })
+            it('should return true for cyclic graph', () => {
+                expect(g.isCyclic()).to.be.true;
+            })
+
+            it('should throw cyclic dependencies error on topological sort given graph with cycles', () => {
+                const f = function () {g.toposort()};
+                expect(f).to.throw(CyclicError);
+            })
     
+            it('should find successor layers of a given node', () => {
+                const node = g.node('e');
+                const layers = !!node? g.getSuccessorsLayersRecursively(node) : [];
+                expect(layers).to.deep.equal([ 'c', 'd', 'f', 'e' ]);
+            })
+
+            it.only('should find predecessors layers of a given node', () => {
+                const node = g.node('z');
+                const layers = !!node? g.getPredecessorsLayersRecursively(node) : [];
+                expect(layers).to.deep.equal([ 'c', 'd', 'f', 'e' ]);
+            })
+        })     
+    })
 })

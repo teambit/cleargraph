@@ -1,7 +1,9 @@
 import { Node, NodeId } from './index';
 import { Edge, EdgeId } from './index';
-import { CyclicError } from './index'
+import { CyclicError } from './errors/error';
 import _ from 'lodash';
+import { tarjan } from './algorithms';
+
 
 /**
  * Graph abstractly represents a graph with arbitrary objects
@@ -122,6 +124,13 @@ export class Graph<ND, ED> {
   }
 
   /**
+   * get all node keys in the graph
+   */
+  nodes(){
+    return [...this._nodes.keys()];
+  }
+
+  /**
    * get all nodes in the graph.
    */
   allNodes(): Map<NodeId, Node<ND>>{
@@ -133,6 +142,10 @@ export class Graph<ND, ED> {
    */
   allEdges(): Map<EdgeId, Edge<ED>>{
     return this._edges;
+  }
+
+  nodeKeys(): string[]{
+    return [...this._nodes.keys()];
   }
 
   /**
@@ -243,7 +256,7 @@ export class Graph<ND, ED> {
    * @param nodeId the id of the source node
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  immediateSuccessors(nodeId: NodeId, filterPredicate: (edge: Edge<ED>) => boolean = returnTrue): Map<NodeId, Node<ND>>{
+  successors(nodeId: NodeId, filterPredicate: (edge: Edge<ED>) => boolean = returnTrue): Map<NodeId, Node<ND>>{
     let successors = new Map<NodeId, Node<ND>>();
     const node = this.node(nodeId);
     if (node === undefined) return successors;
@@ -265,7 +278,7 @@ export class Graph<ND, ED> {
    * @param nodeId the id of the target node
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  immediatePredecessors(nodeId: NodeId, filterPredicate: (edge: Edge<ED>) => boolean = returnTrue): Map<NodeId, Node<ND>>{
+  predecessors(nodeId: NodeId, filterPredicate: (edge: Edge<ED>) => boolean = returnTrue): Map<NodeId, Node<ND>>{
     let predecessors = new Map<NodeId, Node<ND>>();
     const node = this.node(nodeId);
     if (node === undefined) return predecessors;
@@ -288,7 +301,7 @@ export class Graph<ND, ED> {
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
   neighbors(nodeId: NodeId): Map<NodeId, Node<ND>>{
-    let neighbors = new Map([...this.immediatePredecessors(nodeId), ...this.immediateSuccessors(nodeId)]);
+    let neighbors = new Map([...this.predecessors(nodeId), ...this.successors(nodeId)]);
     return neighbors;
   }
 
@@ -303,8 +316,8 @@ export class Graph<ND, ED> {
     return this._successorsSubgraphUtil(node.id, g, {}, filterPredicate)
   }
 
-  _successorsSubgraphUtil(nodeId: NodeId, successorsGraph: Graph<ND,ED>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: Edge<ED>) => boolean = returnTrue): Graph<ND, ED> {
-    const successors = [...this.immediateSuccessors(nodeId, filterPredicate).keys()] || [];
+  private _successorsSubgraphUtil(nodeId: NodeId, successorsGraph: Graph<ND,ED>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: Edge<ED>) => boolean = returnTrue): Graph<ND, ED> {
+    const successors = [...this.successors(nodeId, filterPredicate).keys()] || [];
     if (successors.length > 0 && !visited[nodeId]) {
         successors.forEach((successor:string) => {
             visited[nodeId] = true;
@@ -337,11 +350,11 @@ export class Graph<ND, ED> {
     return successors;
   }
 
-  _successorsArrayUtil(nodeId: string,
+  private _successorsArrayUtil(nodeId: string,
                        successorsList: string[] = [],
                        visited: { [key: string]: boolean } = {},
                        filterPredicate: (data: Edge<ED>) => boolean = returnTrue): NodeId[]{  
-        const successors = [...this.immediateSuccessors(nodeId, filterPredicate).keys()] || [];
+        const successors = [...this.successors(nodeId, filterPredicate).keys()] || [];
         if (successors.length > 0 && !visited[nodeId]) {
             successors.forEach((successor:string) => {
             visited[nodeId] = true;
@@ -363,8 +376,8 @@ export class Graph<ND, ED> {
     return this._predecessorsSubgraphUtil(node.id, g, {}, filterPredicate)
   }
 
-  _predecessorsSubgraphUtil(nodeId: NodeId, predecessorsGraph: Graph<ND,ED>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: Edge<ED>) => boolean = returnTrue): Graph<ND, ED> {
-    const predecessors = [...this.immediatePredecessors(nodeId, filterPredicate).keys()] || [];
+  private _predecessorsSubgraphUtil(nodeId: NodeId, predecessorsGraph: Graph<ND,ED>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: Edge<ED>) => boolean = returnTrue): Graph<ND, ED> {
+    const predecessors = [...this.predecessors(nodeId, filterPredicate).keys()] || [];
         if (predecessors.length > 0 && !visited[nodeId]) {
             predecessors.forEach((predecessor:string) => {
                 visited[nodeId] = true;
@@ -397,11 +410,11 @@ export class Graph<ND, ED> {
     return predecessors;
   }
 
-  _predecessorsArrayUtil(nodeId: string,
+  private _predecessorsArrayUtil(nodeId: string,
                        predecessorsList: string[] = [],
                        visited: { [key: string]: boolean } = {},
                        filterPredicate: (data: Edge<ED>) => boolean = returnTrue): NodeId[]{  
-        const predecessors = [...this.immediatePredecessors(nodeId, filterPredicate).keys()] || [];
+        const predecessors = [...this.predecessors(nodeId, filterPredicate).keys()] || [];
         if (predecessors.length > 0 && !visited[nodeId]) {
             predecessors.forEach((predecessor:string) => {
             visited[nodeId] = true;
@@ -424,7 +437,100 @@ export class Graph<ND, ED> {
     return res.filter(id =>initialNodes.includes(id));
   }
 
-  _transformEdges(){
+  /**
+   * Returns an array of arrays of node keys representing the topological sort of the provided node key and all node keys that are recursively its successors, or undefined if the node is not in the graph.
+   * If a filter function is provided - keeps traversing the graph only over edges for which the filter function returns truthy.
+   * The layers can be ordered either from the provided node key (order='fromSource', default) or from the last node(s) in the sorting (order='fromLastNodes')
+   * Behavior is undefined for undirected graphs.
+   */
+  getSuccessorsLayersRecursively(node: Node<ND>, filterPredicate: (data: Edge<ED>) => boolean = returnTrue, order:'fromSource' | 'fromLastNodes'= 'fromSource', throwCyclicError=false): {successorLayers: string[][] | never, cycles: string[][]} {
+    if(this.isCyclic() && throwCyclicError){
+      throw CyclicError;
+    }    
+    let successorsGraph = this.successorsSubgraph(node, filterPredicate);
+    const cycles = findCycles(successorsGraph);
+    if (!!cycles){
+      //@ts-ignore
+      successorsGraph = rearrangeCyclicGraph(successorsGraph, cycles);
+    }
+    let visitedInCycles = [];
+    let layers: string[][] = [];
+    let floor = 0;
+    layers[floor]=[node.id];
+    //@ts-ignore
+    let rawLayers = this._successorsLayersUtil([node.id], layers, floor, filterPredicate, cycles, visitedInCycles);
+    const arrangedLayers = arrangeLayers(rawLayers, order);
+    //@ts-ignore
+    return {successorLayers: arrangedLayers, cycles: cycles};
+}
+
+  private _successorsLayersUtil(nodeIds: string[],
+                                layers: string[][],
+                                floor: number,
+                                filterPredicate: (data: Edge<ED>) => boolean = returnTrue,
+                                cycles: string[][]=[],
+                                visitedInCycles: string[]=[]){  
+        if (nodeIds.length > 0) {
+            let nextFloor = floor + 1
+            layers.push([])
+            layers[floor].forEach((successor:string) => {
+                if(visitedInCycles.indexOf(successor) == -1){
+                    visitedInCycles.push(successor)
+                    layers[nextFloor] = layers[nextFloor].concat([...this.successors(successor, filterPredicate).keys()])
+                }});
+            return this._successorsLayersUtil(layers[nextFloor], layers, nextFloor, filterPredicate, cycles, visitedInCycles)
+        }
+        return layers;
+    }
+
+/**
+   * Returns an array of arrays of node keys representing the topological sort of the provided node key and all node keys that are recursively its predecessors, or undefined if the node is not in the graph.
+   * If a filter function is provided - keeps traversing the graph only over edges for which the filter function returns truthy.
+   * The layers can be ordered either from the provided node key (order='fromSource', default) or from the last node(s) in the sorting (order='fromLastNodes')
+   * Behavior is undefined for undirected graphs.
+   */
+  getPredecessorsLayersRecursively(node: Node<ND>, filterPredicate: (data: Edge<ED>) => boolean = returnTrue, order:'fromSource' | 'fromLastNodes'= 'fromSource', throwCyclicError=false): {successorLayers: string[][] | never, cycles: string[][]} {
+    if(this.isCyclic() && throwCyclicError){
+      throw CyclicError;
+    }
+    let predecessorsGraph = this.predecessorsSubgraph(node, filterPredicate);
+    const cycles = findCycles(predecessorsGraph);
+    if (!!cycles){
+      //@ts-ignore
+      successorsGraph = rearrangeCyclicGraph(predecessorsGraph, cycles);
+    }
+    let visitedInCycles = [];
+    let layers: string[][] = [];
+    let floor = 0;
+    layers[floor]=[node.id];
+    //@ts-ignore
+    let rawLayers = this._predecessorsLayersUtil([node.id], layers, floor, filterPredicate, cycles, visitedInCycles);
+    //@ts-ignore
+    const arrangedLayers = arrangeLayers(rawLayers, order, cycles);
+    //@ts-ignore
+    return {successorLayers: arrangedLayers, cycles: cycles};
+}
+
+private _predecessorsLayersUtil(nodeIds: string[],
+                            layers: string[][],
+                            floor: number,
+                            filterPredicate: (data: Edge<ED>) => boolean = returnTrue,
+                            cycles: string[][]=[],
+                            visitedInCycles: string[]=[]){  
+    if (nodeIds.length > 0) {
+        let nextFloor = floor + 1
+        layers.push([])
+        layers[floor].forEach((successor:string) => {
+            if(visitedInCycles.indexOf(successor) == -1){
+                visitedInCycles.push(successor)
+                layers[nextFloor] = layers[nextFloor].concat([...this.predecessors(successor, filterPredicate).keys()])
+            }});
+        return this._predecessorsLayersUtil(layers[nextFloor], layers, nextFloor, filterPredicate, cycles, visitedInCycles)
+    }
+    return layers;
+}
+  
+  private _transformEdges(){
     let edges: string [][] = [];
     this._edges.forEach(originalEdge => {
       edges.push([originalEdge.sourceId, originalEdge.targetId])
@@ -432,7 +538,7 @@ export class Graph<ND, ED> {
     return edges;
   }
 
-  _toposort() {
+  private _toposort() {
     const nodes: NodeId[] = [...this._nodes.keys()]
     const edges = this._transformEdges();
     var cursor = nodes.length
@@ -488,6 +594,18 @@ export class Graph<ND, ED> {
       sorted[--cursor] = node;
     }
   }
+
+  isCyclic() {
+    try {
+      this.toposort();
+    } catch (e) {
+      if (e instanceof CyclicError) {
+        return true;
+      }
+      throw e;
+    }
+    return false;
+  }
   
   /**
    * serialize the graph to a json.
@@ -518,3 +636,50 @@ function makeNodesHash(arr){
   }
   return res
 }
+
+function rearrangeCyclicGraph<ND, ED>(graph: Graph<ND, ED>, cycles: string[][]): { newGraph: Graph<ND, ED>, cycleMap: Map<string, Graph<ND, ED>> }{
+  //Work in progress
+  let g = new Graph<ND, ED>();
+  let cycleMap = new Map<string, Graph<ND, ED>>();
+  let i = 1
+  cycles.forEach(cycle => {
+    let subgraph = createSubgraphFromNodes(graph, cycle);
+    cycleMap.set('cycle'.concat(i.toString()),subgraph);
+  });
+
+  console.log(cycles);
+}
+
+function createSubgraphFromNodes<ND, ED>(graph: Graph<ND, ED>, nodes: NodeId[]): Graph<ND, ED>{
+  //Work in progress
+  
+}
+
+function arrangeLayers(layers:string[][], order: 'fromSource' | 'fromLastNodes', cycles: string[][]=[]): string[][]{
+  let finalLayers: string[][] = []
+  let seenNodes:string[] = []
+  layers = layers.reverse()
+  let i = 0
+  layers.forEach(layer => {
+      if(layer.length > 0){
+          finalLayers.push([])
+          layer.forEach(node => {
+              if(seenNodes.indexOf(node) == -1){ //if node not seen
+                  seenNodes.push(node)
+                  finalLayers[i].push(node)
+              }           
+          })
+      i++
+  }
+  });
+  finalLayers = finalLayers.filter(layer => layer.length > 0)
+  return order === 'fromSource' ? finalLayers.reverse() : finalLayers
+}
+
+function findCycles(g) {
+  return _.filter(tarjan(g), function(cmpt) {
+    // @ts-ignore
+    return cmpt.length > 1 || (cmpt.length === 1 && g.hasEdge(cmpt[0], cmpt[0]));
+  });
+}
+

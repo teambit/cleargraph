@@ -4,6 +4,7 @@
   "description": "A library for modeling and traversing graphs",
   "main": "dist/index.js",
   "dependencies": {
+    "@types/graphlib": "^2.1.5",
     "graphlib": "^2.1.8",
     "lodash": "^4.17.15",
     "typescript": "^3.7.4"
