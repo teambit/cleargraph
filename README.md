@@ -5,6 +5,13 @@ Cleargraph is a graph library offering:
  * Traversal over successors and predecessors
  * Use of user-defined filters on nodes and edges information and traversal
  * Strictly-typed implementation
+ 
+## Installation
+
+```sh
+npm install cleargraph
+yarn add cleargraph
+```
 
 ## Getting started
 
@@ -63,12 +70,6 @@ g.setNode(new Node('moon', new NodeData('moon', 1737)));
 g.setNode(new Node('sun', new NodeData('sun', 696340)));
 g.setEdge(new Edge('moon','earth', new EdgeData('orbits', 384400)));
 g.setEdge(new Edge('earth','sun', new EdgeData('orbits', 147240000)));
-```
-
-## Installation
-
-```sh
-npm install cleargraph
 ```
 
 ## Contributing
