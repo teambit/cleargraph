@@ -5,8 +5,8 @@ import _ from 'lodash';
 export type NodeId = string;
 
 export class Node<ND> {
-  readonly id: NodeId;
-  readonly attr: ND;
+  id: NodeId;
+  attr: ND;
   _inEdges: EdgeId[];
   _outEdges: EdgeId[];
   constructor(
@@ -54,6 +54,24 @@ export class Node<ND> {
   equals(node: Node<ND>) {
     if (this.id !== node.id) return false;
     return isEqual(this.attr, node.attr);
+  }
+
+  toString() {
+    return JSON.stringify(
+      {
+        id: this.id, 
+        attr: _.toString(this.attr)
+      }
+    );
+  }
+
+  fromString(json: string) {
+    const obj = JSON.parse(json);
+    return new Node(obj.id, obj.attr);
+  }
+
+  fromObject( obj: {id: string, attr: ND}) {
+    return new Node(obj.id, obj.attr);
   }
 
   static fromObject<ND>(object: { id: NodeId; attr: ND }) {

@@ -2,6 +2,7 @@ import { Node, NodeId } from './index';
 import { Edge, EdgeId } from './index';
 import { CyclicError } from './index'
 import _ from 'lodash';
+import { tarjan } from './algorithms';
 
 /**
  * Graph abstractly represents a graph with arbitrary objects
@@ -488,6 +489,19 @@ export class Graph<ND, ED> {
       sorted[--cursor] = node;
     }
   }
+
+  isCyclic() {
+    try {
+      this.toposort();
+    } catch (e) {
+      if (e instanceof CyclicError) {
+        return true;
+      }
+      throw e;
+    }
+    return false;
+  }
+
   
   /**
    * serialize the graph to a json.
@@ -517,4 +531,11 @@ function makeNodesHash(arr){
     res.set(arr[i], i)
   }
   return res
+}
+
+function findCycles(g) {
+  return _.filter(tarjan(g), function(cmpt) {
+    // @ts-ignore
+    return cmpt.length > 1 || (cmpt.length === 1 && g.hasEdge(cmpt[0], cmpt[0]));
+  });
 }

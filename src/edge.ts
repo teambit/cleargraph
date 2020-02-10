@@ -1,4 +1,5 @@
 import { NodeId } from './node';
+import _ from 'lodash';
 
 export type EdgeId = string;
 
@@ -23,6 +24,21 @@ export class Edge<ED> {
     this.sourceId = sourceId;
     this.targetId = targetId;
     this.attr = attr;
+  }
+
+  toString() {
+    return JSON.stringify(
+      {
+        sourceId: this.sourceId,
+        targetId: this.targetId, 
+        attr: _.toString(this.attr)
+      }
+    );
+  }
+
+  fromString(json: string) {
+    const obj = JSON.parse(json);
+    return new Edge(obj.sourceId, obj.targetId, obj.attr);
   }
 
   static fromObject<ED>(object: RawEdge<ED>) {
