@@ -1,10 +1,11 @@
 import { isEqual } from 'lodash';
 import { EdgeId } from './edge';
 import _ from 'lodash';
+import { Serializable } from './index';
 
 export type NodeId = string;
 
-export class Node<ND> {
+export class Node<ND extends Serializable> {
   id: NodeId;
   attr: ND;
   _inEdges: EdgeId[];
@@ -60,21 +61,14 @@ export class Node<ND> {
     return JSON.stringify(
       {
         id: this.id, 
-        attr: _.toString(this.attr)
+        attr: this.attr.toString()
       }
     );
   }
 
-  fromString(json: string) {
+  static fromString(json: string) {
     const obj = JSON.parse(json);
-    return new Node(obj.id, obj.attr);
+    return new Node(obj.id, obj.attr.fromString());
   }
 
-  fromObject( obj: {id: string, attr: ND}) {
-    return new Node(obj.id, obj.attr);
-  }
-
-  static fromObject<ND>(object: { id: NodeId; attr: ND }) {
-    return new Node(object.id, object.attr);
-  }
 }

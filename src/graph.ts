@@ -3,6 +3,8 @@ import { Edge, EdgeId } from './index';
 import { CyclicError } from './index'
 import _ from 'lodash';
 import { tarjan } from './algorithms';
+import { toJson } from './json';
+import { Serializable } from './serializable';
 
 /**
  * Graph abstractly represents a graph with arbitrary objects
@@ -14,7 +16,7 @@ import { tarjan } from './algorithms';
  * @tparam ED the edge attribute type
  */
 
-export class Graph<ND, ED> {
+export class Graph<ND extends Serializable, ED extends Serializable> {
 
   constructor(
     /**
@@ -32,6 +34,20 @@ export class Graph<ND, ED> {
 
   private _nodes = new Map<NodeId, Node<ND>>();
   private _edges = new Map<EdgeId, Edge<ED>>();
+
+  /**
+   * return an array of all Node objects in the graph.
+   */
+  get nodes() {
+    return [...this._nodes.values()];
+  }
+
+  /**
+   * return an array of all Edge objects in the graph.
+   */
+  get edges() {
+    return [...this._edges.values()];
+  }
 
   /**
    * set a new node on the graph or override existing node with the same key
@@ -502,13 +518,15 @@ export class Graph<ND, ED> {
     return false;
   }
 
-  
+  findCycles(){
+    return findCycles(this);
+  }
+
   /**
-   * serialize the graph to a json.
+   * stringify the graph to a JSON.
    */
-  toString() {
-    //TODO
-    return 
+  stringify(graph?: Graph<ND, ED>): string {
+    return graph? toJson(graph) : toJson(this);
   } 
 }
 

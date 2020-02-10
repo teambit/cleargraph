@@ -1,31 +1,61 @@
-import { Graph, CyclicError } from "./index"
+import { Graph, CyclicError, Serializable } from "./index"
 import { Node } from "./index";
 import { Edge } from "./index";
 import { expect } from "chai";
 
 
-type NodeData = {name: string, version: string}
-type EdgeData = {dep: string, semDist: number}
+class NodeData implements Serializable {
+    name: string;
+    version: string;
+    constructor(name:string, version:string){
+        this.name = name;
+        this.version = version;
+    }
+    toString(){
+        return JSON.stringify({name: this.name, version: this.version});
+    }
+    fromString(json:string){
+        const obj = JSON.parse(json);
+        return new NodeData(obj.name, obj.version);
+    }
+}
+
+class EdgeData implements Serializable {
+    dep: 'peer' | 'dev' | 'regular';
+    semDist: number;
+    constructor(dep: 'peer' | 'dev' | 'regular', semDist: number){
+        this.dep = dep;
+        this.semDist = semDist;
+    }
+    toString(){
+        return JSON.stringify({dep: this.dep, semDist: this.semDist});
+    }
+    fromString(json:string){
+        const obj = JSON.parse(json);
+        return new NodeData(obj.dep, obj.semDist);
+    }
+}
+
 
 describe('graphTester', () => {
     let nodeArr = [
-        new Node('a', {name: 'comp1', version: '1.0.0'}),
-        new Node('b', {name: 'comp2', version: '2.0.0'}),
-        new Node('c', {name: 'comp3', version: '1.0.1'}),
-        new Node('d', {name: 'comp4', version: '15.0.0'}),
-        new Node('e', {name: 'comp5', version: '3.0.0'}),
-        new Node('f', {name: 'comp6', version: '2.0.0'}),
-        new Node('g', {name: 'comp7', version: '2.0.0'})
+        new Node('a', new NodeData('comp1', '1.0.0')),
+        new Node('b', new NodeData('comp2', '2.0.0')),
+        new Node('c', new NodeData('comp3', '1.0.1')),
+        new Node('d', new NodeData('comp4', '15.0.0')),
+        new Node('e', new NodeData('comp5', '3.0.0')),
+        new Node('f', new NodeData('comp6', '2.0.0')),
+        new Node('g', new NodeData('comp7', '2.0.0'))
     ];
 
     let edgeArr = [
-        new Edge('a','b', {dep:'peer', semDist:3}),
-        new Edge('a','c', {dep:'dev', semDist:3}),
-        new Edge('c','d', {dep:'regular', semDist:3}),
-        new Edge('c','e', {dep:'regular', semDist:2}),
-        new Edge('d','f', {dep:'peer', semDist:1}),
-        new Edge('e','d', {dep:'dev', semDist:1}),
-        new Edge('g','a', {dep:'dev', semDist:1})
+        new Edge('a','b', new EdgeData('peer', 3)),
+        new Edge('a','c', new EdgeData('dev', 3)),
+        new Edge('c','d', new EdgeData('regular', 3)),
+        new Edge('c','e', new EdgeData('regular', 3)),
+        new Edge('d','f', new EdgeData('peer', 1)),
+        new Edge('e','d', new EdgeData('dev', 1)),
+        new Edge('g','a', new EdgeData('dev', 1)),
     ];
 
     let g = new Graph<NodeData, EdgeData>(nodeArr, edgeArr);
@@ -70,14 +100,14 @@ describe('graphTester', () => {
         })
 
         it('should delete node', () => {
-            g.setNode(new Node('h', {name: 'comp8', version: '1.0.0'}));
+            g.setNode(new Node('h', new NodeData('comp8', '1.0.0')));
             expect(g.nodeCount()).to.equal(8);
             g.deleteNode('h');
             expect(g.nodeCount()).to.equal(7);
         })
 
         it('should delete edge', () => {
-            g.setEdge(new Edge('g', 'd', {dep:'dev', semDist:1}));
+            g.setEdge(new Edge('g', 'd', new EdgeData('dev', 1)));
             expect(g.edgeCount()).to.equal(8);
             g.deleteEdge('g','d');
             expect(g.edgeCount()).to.equal(7);
@@ -157,13 +187,17 @@ describe('graphTester', () => {
             g.deleteEdge('g', 'a');
             const res = g.toposort();
             expect(res).to.deep.equal([ 'a', 'b', 'c', 'e', 'd', 'f', 'g' ]);
-            g.setEdge(new Edge('g','a', {dep:'dev', semDist:1}));
+            g.setEdge(new Edge('g','a', new EdgeData('dev', 1)));
         })
 
         it('should throw cyclic dependencies error on topological sort given graph with cycles', () => {
             const f = function () {g.toposort()};
-            g.setEdge(new Edge('f','g', {dep:'dev', semDist:2}));
+            g.setEdge(new Edge('f','g', new EdgeData('dev', 2)));
             expect(f).to.throw(CyclicError);
+        })
+
+        it.only('should return a json with all graph nodes and edges', () => { 
+            console.log(g.stringify());
         })
 
     })

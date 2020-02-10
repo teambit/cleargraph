@@ -1,9 +1,10 @@
 import { NodeId } from './node';
 import _ from 'lodash';
+import { Serializable } from './index';
 
 export type EdgeId = string;
 
-export type RawEdge<ED> = {
+export type RawEdge<ED extends Serializable> = {
   sourceId: NodeId, 
   targetId: NodeId, 
   attr: ED
@@ -19,7 +20,7 @@ export type RawEdge<ED> = {
  * @param dstId The vertex id of the target vertex
  * @param attr The attribute associated with the edge
  */
-export class Edge<ED> {
+export class Edge<ED extends Serializable> {
   constructor(readonly sourceId: NodeId, readonly targetId: NodeId, readonly attr: ED) {
     this.sourceId = sourceId;
     this.targetId = targetId;
@@ -31,18 +32,14 @@ export class Edge<ED> {
       {
         sourceId: this.sourceId,
         targetId: this.targetId, 
-        attr: _.toString(this.attr)
+        attr: this.attr.toString()
       }
     );
   }
 
-  fromString(json: string) {
+  static fromString(json: string) {
     const obj = JSON.parse(json);
     return new Edge(obj.sourceId, obj.targetId, obj.attr);
-  }
-
-  static fromObject<ED>(object: RawEdge<ED>) {
-    return new Edge(object.sourceId, object.targetId, object.attr);
   }
 
   static edgeId(sourceId: NodeId, targetId: NodeId): EdgeId {
