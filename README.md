@@ -12,19 +12,57 @@ The nodes and edges in the graph are represented by key-value pairs where the ke
 and the generics `ND` and `ED` represent the node value and edge value respectively.
 
 When instantiating the graph, specify the values of `ND` and `ED`.
+In addition, in order to allow graph serialization, ND and ED **must implement `toString()` and can implement `fromString()`**.
+
+Here is an example of ND (Node Data) and ED (Edge Data) classes:
 
 ```typescript
-type NodeData = { name: string, radius: number}
-type EdgeData = { relationType: string, proximity: number}
+class NodeData implements Serializable {
+    name: string;
+    radius: number;
+    constructor(name:string, radius:number){
+        this.name = name;
+        this.radius = radius;
+    }
+    toString(){
+        return JSON.stringify({name: this.name, radius: this.radius});
+    }
+    fromString(json:string){
+        const obj = JSON.parse(json);
+        return new NodeData(obj.name, obj.radius);
+    }
+}
+
+class EdgeData implements Serializable {
+    relationType: string;
+    proximity: number;
+    constructor(relationType: string, proximity: number){
+        this.relationType = relationType;
+        this.proximity = proximity;
+    }
+    toString(){
+        return JSON.stringify({relationType: this.relationType, proximity: this.proximity});
+    }
+    fromString(json:string){
+        const obj = JSON.parse(json);
+        return new NodeData(obj.relationType, obj.proximity);
+    }
+}
+```
+
+Now we will use these classes to implement a graph:
+
+```typescript
 
 let g = new Graph<NodeData, EdgeData>();
 
-g.setNode(name: "earth", radius: 6371 );
-g.setNode(name: "moon", radius: 1737);
-g.setNode(name: "sun", radius: 696340);
-g.setEdge("moon", "earth", { relationType: 'orbits', proximity: 384400 });
-g.setEdge("earth", "sun", { relationType: 'orbits', proximity: 147240000 });
+new Node('a', new NodeData('comp1', '1.0.0'))
 
+g.setNode(new Node('earth', new NodeData('earth', 6371)));
+g.setNode(new Node('moon', new NodeData('moon', 1737)));
+g.setNode(new Node('sun', new NodeData('sun', 696340)));
+g.setEdge(new Edge('moon','earth', new EdgeData('orbits', 384400)));
+g.setEdge(new Edge('earth','sun', new EdgeData('orbits', 147240000)));
 ```
 
 ## Installation
