@@ -196,10 +196,6 @@ describe('graphTester', () => {
             expect(f).to.throw(CyclicError);
         })
 
-        it.only('should return a json with all graph nodes and edges', () => { 
-            console.log(g.stringify());
-        })
-
     })
     
 })
