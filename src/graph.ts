@@ -36,20 +36,6 @@ export class Graph<ND extends Serializable, ED extends Serializable> {
   private _edges = new Map<EdgeId, Edge<ED>>();
 
   /**
-   * return an array of all Node objects in the graph.
-   */
-  get nodes() {
-    return [...this._nodes.values()];
-  }
-
-  /**
-   * return an array of all Edge objects in the graph.
-   */
-  get edges() {
-    return [...this._edges.values()];
-  }
-
-  /**
    * set a new node on the graph or override existing node with the same key
    * @param node a node with a generic data type ND
    */
@@ -139,16 +125,31 @@ export class Graph<ND extends Serializable, ED extends Serializable> {
   }
 
   /**
+   * return an array of all Node objects in the graph.
+   */
+  get nodes() {
+    return [...this._nodes.values()];
+  }
+
+  /**
+   * return an array of all Edge objects in the graph.
+   */
+  get edges() {
+    return [...this._edges.values()];
+  }
+
+
+  /**
    * get all nodes in the graph.
    */
-  allNodes(): Map<NodeId, Node<ND>>{
+  nodesMap(): Map<NodeId, Node<ND>>{
     return this._nodes;
   }
 
   /**
    * get all edges in the graph.
    */
-  allEdges(): Map<EdgeId, Edge<ED>>{
+  edgesMap(): Map<EdgeId, Edge<ED>>{
     return this._edges;
   }
 
@@ -528,6 +529,14 @@ export class Graph<ND extends Serializable, ED extends Serializable> {
   stringify(graph?: Graph<ND, ED>): string {
     return graph? toJson(graph) : toJson(this);
   } 
+
+  bfs(){
+
+  }
+
+  dfs(){
+
+  }
 }
 
 function returnTrue(){ return true; }

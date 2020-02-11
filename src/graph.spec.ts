@@ -82,12 +82,12 @@ describe('graphTester', () => {
         })
 
         it('should return all graph nodes', () => {
-            const keys = [...g.allNodes().keys()];
+            const keys = [...g.nodesMap().keys()];
             expect(keys).to.deep.equal([ 'a', 'b', 'c', 'd', 'e', 'f', 'g' ]);
         })
 
         it('should return all graph edges', () => {
-            const keys = [...g.allEdges().keys()];
+            const keys = [...g.edgesMap().keys()];
             expect(keys).to.deep.equal(["a->b","a->c","c->d","c->e","d->f","e->d","g->a"]);
         })
 
@@ -146,8 +146,8 @@ describe('graphTester', () => {
         it('should find recursive successors sub-graph of a given node', () => {
             const node = g.node('c');
             const subgraph = !!node? g.successorsSubgraph(node) : new Graph()
-            const nodeKeys = [...subgraph.allNodes().keys()];
-            const edgeKeys = [...subgraph.allEdges().keys()];
+            const nodeKeys = [...subgraph.nodesMap().keys()];
+            const edgeKeys = [...subgraph.edgesMap().keys()];
             expect(nodeKeys).to.deep.equal([ 'c', 'd', 'f', 'e' ]);
             expect(edgeKeys).to.deep.equal([ 'c->d', 'd->f', 'c->e', 'e->d' ]);
         })
@@ -155,8 +155,8 @@ describe('graphTester', () => {
         it('should find recursive predecessors sub-graph of a given node', () => {
             const node = g.node('d');
             const subgraph = !!node? g.predecessorsSubgraph(node) : new Graph()
-            const nodeKeys = [...subgraph.allNodes().keys()];
-            const edgeKeys = [...subgraph.allEdges().keys()];
+            const nodeKeys = [...subgraph.nodesMap().keys()];
+            const edgeKeys = [...subgraph.edgesMap().keys()];
             expect(nodeKeys).to.deep.equal([ 'd', 'c', 'a', 'g', 'e' ]);
             expect(edgeKeys).to.deep.equal(["c->d","a->c","g->a","e->d","c->e"]);
         })
