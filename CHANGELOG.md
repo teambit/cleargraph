@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+## [3.0.1] - 2020-02-12
+
+### New
+* Added fromString() and fromObject() static functions on Node and Edge.
+
 ## [3.0.0] - 2020-02-12
 
 ### BREAKING CHANGES
