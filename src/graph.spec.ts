@@ -173,13 +173,13 @@ describe('graphTester', () => {
             expect(arr).to.deep.equal([ 'c', 'a', 'g', 'e' ]);
         })
 
-        it.only('should perform topological sort on the graph', () => {
+        it('should perform topological sort on the graph', () => {
             const res = g.toposort();
             const ids = res.map(elem => elem? elem.id: '');
             expect(ids).to.deep.equal([ 'g', 'a', 'b', 'c', 'e', 'd', 'f' ]);
         })
 
-        it.only('should perform topological sort on the graph and return reverse order', () => {
+        it('should perform topological sort on the graph and return reverse order', () => {
             const res = g.toposort(true);
             const ids = res.map(elem => elem? elem.id: '');
             expect(ids).to.deep.equal([ 'f', 'd', 'e', 'c', 'b', 'a', 'g' ]);
