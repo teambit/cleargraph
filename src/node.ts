@@ -52,6 +52,20 @@ export class Node<ND extends Serializable> {
     return this._inEdges.concat(this._outEdges)
   }
 
+  /**
+   * return true if node has only out edges
+   */
+  isSource(): boolean { 
+    return (this._inEdges.length === 0 && this._outEdges.length > 0)
+  }
+
+  /**
+   * return true if node has only in edges
+   */
+  isSink(): boolean {
+    return (this._inEdges.length > 0 && this._outEdges.length === 0)
+  }
+
   equals(node: Node<ND>) {
     if (this.id !== node.id) return false;
     return isEqual(this.attr, node.attr);

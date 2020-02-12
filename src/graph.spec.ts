@@ -115,6 +115,17 @@ describe('graphTester', () => {
             expect(g.edgeCount()).to.equal(7);
         })
 
+        it('should return all graph sources', () => {
+            const res = g.sources()
+            const ids = res.map(elem => elem? elem.id: '');
+            expect(ids).to.deep.equal(['g']);
+        })
+
+        it('should return all graph sinks', () => {
+            const res = g.sinks()
+            const ids = res.map(elem => elem? elem.id: '');
+            expect(ids).to.deep.equal(['b', 'f']);        })
+
         it('should delete node', () => {
             g.setNode(new Node('h', new NodeData('comp8', '1.0.0')));
             expect(g.nodeCount()).to.equal(8);

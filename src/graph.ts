@@ -168,6 +168,22 @@ export class Graph<ND extends Serializable, ED extends Serializable> {
   }
 
   /**
+   * return all nodes that have only out edges and no in edges.
+   */
+  sources(){
+    let nodesToReturn = [...this._nodes.values()];
+    return nodesToReturn.filter(node => node.isSource());
+  }
+
+   /**
+    * return all nodes that have only in edges and no out edges.
+    */
+   sinks(){
+    let nodesToReturn = [...this._nodes.values()];
+    return nodesToReturn.filter(node => node.isSink());
+   }
+
+  /**
    * delete a single node by id if exists. Note that all edges to and from this node will also be deleted.
    * @param id the id of the node to be deleted
    */
