@@ -434,12 +434,8 @@ export class Graph<ND extends Serializable, ED extends Serializable> {
    * A topological sort of the graph
    * @param initialNodes An optional param that enables to get topological sorting only on specific nodes in the graph 
    */
-  toposort(initialNodes?: NodeId[]){
-    let res = this._toposort();
-    if(!initialNodes){
-      return res;
-    }
-    return res.filter(id =>initialNodes.includes(id));
+  toposort(reverse:boolean=false){
+    return reverse ? this._toposort().reverse().map(nodeId => this.node(nodeId)) : this._toposort().map(nodeId => this.node(nodeId));
   }
 
   _transformEdges(){

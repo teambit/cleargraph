@@ -173,14 +173,16 @@ describe('graphTester', () => {
             expect(arr).to.deep.equal([ 'c', 'a', 'g', 'e' ]);
         })
 
-        it('should perform topological sort on the graph', () => {
+        it.only('should perform topological sort on the graph', () => {
             const res = g.toposort();
-            expect(res).to.deep.equal([ 'g', 'a', 'b', 'c', 'e', 'd', 'f' ]);
+            const ids = res.map(elem => elem? elem.id: '');
+            expect(ids).to.deep.equal([ 'g', 'a', 'b', 'c', 'e', 'd', 'f' ]);
         })
 
-        it('should perform topological sort on specific nodes', () => {
-            const res = g.toposort(['e', 'b', 'a']);
-            expect(res).to.deep.equal([ 'a', 'b', 'e' ]);
+        it.only('should perform topological sort on the graph and return reverse order', () => {
+            const res = g.toposort(true);
+            const ids = res.map(elem => elem? elem.id: '');
+            expect(ids).to.deep.equal([ 'f', 'd', 'e', 'c', 'b', 'a', 'g' ]);
         })
 
         it('should perform topological sort on graph with unconnected components', () => {
