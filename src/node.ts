@@ -66,9 +66,13 @@ export class Node<ND extends Serializable> {
     );
   }
 
+  static fromObject(obj:{ id: string, attr: any }) {
+    return new Node(obj.id, obj.attr);
+  }
+
   static fromString(json: string) {
     const obj = JSON.parse(json);
-    return new Node(obj.id, obj.attr.fromString());
+    return new Node(obj.id, obj.attr);
   }
 
 }

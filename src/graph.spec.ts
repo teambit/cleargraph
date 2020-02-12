@@ -61,6 +61,22 @@ describe('graphTester', () => {
     let g = new Graph<NodeData, EdgeData>(nodeArr, edgeArr);
     
     describe('basicTester', () => {
+        it('should build node from object', () => {
+            expect(Node.fromObject({id: '1', attr: 'a'})).to.deep.equal(new Node('1', 'a'));
+        })
+
+        it('should build node from string', () => {
+            expect(Node.fromString(JSON.stringify({id: '1', attr: 'a'}))).to.deep.equal(new Node('1', 'a'));
+        })
+
+        it('should build edge from object', () => {
+            expect(Edge.fromObject({sourceId: '1', targetId: '2', attr: 'a'})).to.deep.equal(new Edge('1', '2', 'a'));
+        })
+
+        it('should build edge from string', () => {
+            expect(Edge.fromString(JSON.stringify({sourceId: '1', targetId: '2', attr: 'a'}))).to.deep.equal(new Edge('1', '2', 'a'));
+        })
+
         it('should return node', () => {
             expect(g.node("b")?.attr).to.deep.equal({ name: 'comp2', version: '2.0.0'});
         })
@@ -188,7 +204,8 @@ describe('graphTester', () => {
         it('should perform topological sort on graph with unconnected components', () => {
             g.deleteEdge('g', 'a');
             const res = g.toposort();
-            expect(res).to.deep.equal([ 'a', 'b', 'c', 'e', 'd', 'f', 'g' ]);
+            const ids = res.map(elem => elem? elem.id: '');
+            expect(ids).to.deep.equal([ 'a', 'b', 'c', 'e', 'd', 'f', 'g' ]);
             g.setEdge(new Edge('g','a', new EdgeData('dev', 1)));
         })
 
