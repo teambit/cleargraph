@@ -37,11 +37,11 @@ export class Edge<ED extends Serializable> {
     );
   }
 
-  static fromObject(obj:{ sourceId: string, targetId: string, attr: any }): Edge<ED> {
+  static fromObject(obj:{ sourceId: string, targetId: string, attr: any }) {
     return new Edge(obj.sourceId, obj.targetId, obj.attr);
   }
 
-  static fromString(json: string): Edge<ED> {
+  static fromString(json: string) {
     const obj = JSON.parse(json);
     return new Edge(obj.sourceId, obj.targetId, obj.attr);
   }
