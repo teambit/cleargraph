@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+## [3.0.0] - 2020-02-12
+
+### BREAKING CHANGES
+* In toposort() removed initial nodes filter and added reverse (default false) for ordering of results.
+* In toposort() now returning an array of nodes and not an array of keys. 
+
 ## [2.0.3] - 2020-02-11
 
 ### Changes
