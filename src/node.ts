@@ -1,18 +1,18 @@
 import { isEqual } from 'lodash';
 import { EdgeId } from './edge';
 import _ from 'lodash';
-import { Serializable } from './index';
+
 
 export type NodeId = string;
 
-export class Node<ND extends Serializable> {
+export class GraphNode<N> {
   id: NodeId;
-  attr: ND;
+  attr: N;
   _inEdges: EdgeId[];
   _outEdges: EdgeId[];
   constructor(
     id: NodeId, 
-    attr: ND,
+    attr: N,
     inEdges?: EdgeId[],
     outEdges?: EdgeId[]
     
@@ -66,27 +66,35 @@ export class Node<ND extends Serializable> {
     return (this._inEdges.length > 0 && this._outEdges.length === 0)
   }
 
-  equals(node: Node<ND>) {
+  equals(node: GraphNode<N>) {
     if (this.id !== node.id) return false;
     return isEqual(this.attr, node.attr);
   }
 
   toString() {
+    let attrStr: string = '';
+    if (!!this.attr['toString'] && typeof this.attr['toString'] === 'function'){
+      //@ts-ignore
+      attrStr = this.attr.toString();
+    }
+    else{
+      attrStr = JSON.stringify(this.attr);
+    }
     return JSON.stringify(
       {
         id: this.id, 
-        attr: this.attr.toString()
+        attr: attrStr
       }
     );
   }
 
   static fromObject(obj:{ id: string, attr: any }) {
-    return new Node(obj.id, obj.attr);
+    return new GraphNode(obj.id, obj.attr);
   }
 
   static fromString(json: string) {
     const obj = JSON.parse(json);
-    return new Node(obj.id, obj.attr);
+    return new GraphNode(obj.id, obj.attr);
   }
 
 }

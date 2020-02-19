@@ -1,5 +1,5 @@
-export { Edge, EdgeId } from './edge'
-export { Node, NodeId } from './node'
+export { GraphEdge, EdgeId } from './edge'
+export { GraphNode, NodeId } from './node'
 export { CyclicError } from './errors/error'
 export { Graph } from './graph'
-export { Serializable } from './serializable'
+

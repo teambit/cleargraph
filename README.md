@@ -16,12 +16,12 @@ yarn add cleargraph
 ## Getting started
 
 The nodes and edges in the graph are represented by key-value pairs where the keys are strings, 
-and the generics `ND` and `ED` represent the node value and edge value respectively.
+and the generics `N` and `E` represent the node value and edge value respectively.
 
-When instantiating the graph, specify the values of `ND` and `ED`.
-In addition, in order to allow graph serialization, ND and ED **must implement `toString()` and can implement `fromString()`**.
+When instantiating the graph, specify the values of `N` and `E`.
+In addition, in order to allow graph serialization, N and E **must implement `toString()` and can implement `fromString()`**.
 
-Here is an example of ND (Node Data) and ED (Edge Data) classes:
+Here is an example of N (Node Data) and E (Edge Data) classes:
 
 ```typescript
 class NodeData implements Serializable {

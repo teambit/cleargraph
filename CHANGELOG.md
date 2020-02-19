@@ -39,7 +39,7 @@ The format is based on Keep a Changelog. and this project adheres to Semantic Ve
 * stringify() on whole graph or sub-graph
 
 ### Changes
-* generics ND and ED now extend Serializable. Must implement toString() and fromString()
+* generics N and E now extend Serializable. Must implement toString() and fromString()
 
 ## [1.0.0] - 2020-02-05
 

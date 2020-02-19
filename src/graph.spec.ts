@@ -1,13 +1,13 @@
-import { Graph, CyclicError, Serializable } from "./index"
-import { Node } from "./index";
-import { Edge } from "./index";
+import { Graph, CyclicError } from "./index"
 import { expect } from "chai";
 
 
-class NodeData implements Serializable {
+class NodeData {
+    id: string;
     name: string;
     version: string;
-    constructor(name:string, version:string){
+    constructor(id: string, name:string, version:string){
+        this.id = id;
         this.name = name;
         this.version = version;
     }
@@ -16,11 +16,11 @@ class NodeData implements Serializable {
     }
     fromString(json:string){
         const obj = JSON.parse(json);
-        return new NodeData(obj.name, obj.version);
+        return new NodeData(obj.id, obj.name, obj.version);
     }
 }
 
-class EdgeData implements Serializable {
+class EdgeData {
     dep: 'peer' | 'dev' | 'regular';
     semDist: number;
     constructor(dep: 'peer' | 'dev' | 'regular', semDist: number){
@@ -32,53 +32,37 @@ class EdgeData implements Serializable {
     }
     fromString(json:string){
         const obj = JSON.parse(json);
-        return new NodeData(obj.dep, obj.semDist);
+        return new EdgeData(obj.dep, obj.semDist);
     }
 }
 
 
 describe('graphTester', () => {
     let nodeArr = [
-        new Node('a', new NodeData('comp1', '1.0.0')),
-        new Node('b', new NodeData('comp2', '2.0.0')),
-        new Node('c', new NodeData('comp3', '1.0.1')),
-        new Node('d', new NodeData('comp4', '15.0.0')),
-        new Node('e', new NodeData('comp5', '3.0.0')),
-        new Node('f', new NodeData('comp6', '2.0.0')),
-        new Node('g', new NodeData('comp7', '2.0.0'))
+        {id: 'a', node: new NodeData('a', 'comp1', '1.0.0')},
+        {id: 'b', node: new NodeData('b', 'comp2', '2.0.0')},
+        {id: 'c', node: new NodeData('c', 'comp3', '1.0.0')},
+        {id: 'd', node: new NodeData('d', 'comp4', '15.0.0')},
+        {id: 'e', node: new NodeData('e', 'comp5', '3.0.0')},
+        {id: 'f', node: new NodeData('f', 'comp6', '2.0.0')},
+        {id: 'g', node: new NodeData('g', 'comp7', '2.0.0')}
     ];
 
     let edgeArr = [
-        new Edge('a','b', new EdgeData('peer', 3)),
-        new Edge('a','c', new EdgeData('dev', 3)),
-        new Edge('c','d', new EdgeData('regular', 3)),
-        new Edge('c','e', new EdgeData('regular', 3)),
-        new Edge('d','f', new EdgeData('peer', 1)),
-        new Edge('e','d', new EdgeData('dev', 1)),
-        new Edge('g','a', new EdgeData('dev', 1)),
+        {sourceId: 'a', targetId: 'b', edge: new EdgeData('peer', 3)},
+        {sourceId: 'a', targetId: 'c', edge: new EdgeData('dev', 3)},
+        {sourceId: 'c', targetId: 'd', edge: new EdgeData('regular', 3)},
+        {sourceId: 'c', targetId: 'e', edge: new EdgeData('regular', 3)},
+        {sourceId: 'd', targetId: 'f', edge: new EdgeData('peer', 1)},
+        {sourceId: 'e', targetId: 'd', edge: new EdgeData('dev', 1)},
+        {sourceId: 'g', targetId: 'a', edge: new EdgeData('dev', 1)}
     ];
 
     let g = new Graph<NodeData, EdgeData>(nodeArr, edgeArr);
     
     describe('basicTester', () => {
-        it('should build node from object', () => {
-            expect(Node.fromObject({id: '1', attr: 'a'})).to.deep.equal(new Node('1', 'a'));
-        })
-
-        it('should build node from string', () => {
-            expect(Node.fromString(JSON.stringify({id: '1', attr: 'a'}))).to.deep.equal(new Node('1', 'a'));
-        })
-
-        it('should build edge from object', () => {
-            expect(Edge.fromObject({sourceId: '1', targetId: '2', attr: 'a'})).to.deep.equal(new Edge('1', '2', 'a'));
-        })
-
-        it('should build edge from string', () => {
-            expect(Edge.fromString(JSON.stringify({sourceId: '1', targetId: '2', attr: 'a'}))).to.deep.equal(new Edge('1', '2', 'a'));
-        })
-
         it('should return node', () => {
-            expect(g.node("b")?.attr).to.deep.equal({ name: 'comp2', version: '2.0.0'});
+            expect(g.node("b")).to.deep.equal({ id: 'b', name: 'comp2', version: '2.0.0'});
         })
 
         it('should return undefined for missing node', () => {
@@ -86,7 +70,7 @@ describe('graphTester', () => {
         })
 
         it('should return edge', () => {
-            expect(g.edge('a','b')?.attr).to.deep.equal({ dep: 'peer', semDist: 3});
+            expect(g.edge('a','b')).to.deep.equal({ dep: 'peer', semDist: 3});
         })
 
         it('should return undefined for missing edge', () => {
@@ -127,14 +111,14 @@ describe('graphTester', () => {
             expect(ids).to.deep.equal(['b', 'f']);        })
 
         it('should delete node', () => {
-            g.setNode(new Node('h', new NodeData('comp8', '1.0.0')));
+            g.setNode('h', new NodeData('h', 'comp8', '1.0.0'));
             expect(g.nodeCount()).to.equal(8);
             g.deleteNode('h');
             expect(g.nodeCount()).to.equal(7);
         })
 
         it('should delete edge', () => {
-            g.setEdge(new Edge('g', 'd', new EdgeData('dev', 1)));
+            g.setEdge('g', 'd', new EdgeData('dev', 1));
             expect(g.edgeCount()).to.equal(8);
             g.deleteEdge('g','d');
             expect(g.edgeCount()).to.equal(7);
@@ -172,7 +156,7 @@ describe('graphTester', () => {
 
         it('should find recursive successors sub-graph of a given node', () => {
             const node = g.node('c');
-            const subgraph = !!node? g.successorsSubgraph(node) : new Graph()
+            const subgraph = !!node? g.successorsSubgraph(node.id) : new Graph()
             const nodeKeys = [...subgraph.nodesMap().keys()];
             const edgeKeys = [...subgraph.edgesMap().keys()];
             expect(nodeKeys).to.deep.equal([ 'c', 'd', 'f', 'e' ]);
@@ -181,7 +165,7 @@ describe('graphTester', () => {
 
         it('should find recursive predecessors sub-graph of a given node', () => {
             const node = g.node('d');
-            const subgraph = !!node? g.predecessorsSubgraph(node) : new Graph()
+            const subgraph = !!node? g.predecessorsSubgraph(node.id) : new Graph()
             const nodeKeys = [...subgraph.nodesMap().keys()];
             const edgeKeys = [...subgraph.edgesMap().keys()];
             expect(nodeKeys).to.deep.equal([ 'd', 'c', 'a', 'g', 'e' ]);
@@ -190,13 +174,13 @@ describe('graphTester', () => {
 
         it('should find recursive successors array of a given node', () => {
             const node = g.node('c');
-            const arr = !!node? g.successorsArray(node).map(elem => elem.id) : [];
+            const arr = !!node? g.successorsArray(node.id).map(elem => elem.id) : [];
             expect(arr).to.deep.equal([ 'd', 'f', 'e' ]);
         })
 
         it('should find recursive predecessors array of a given node', () => {
             const node = g.node('d');
-            const arr = !!node? g.predecessorsArray(node).map(elem => elem.id) : [];
+            const arr = !!node? g.predecessorsArray(node.id).map(elem => elem.id) : [];
             expect(arr).to.deep.equal([ 'c', 'a', 'g', 'e' ]);
         })
 
@@ -217,12 +201,12 @@ describe('graphTester', () => {
             const res = g.toposort();
             const ids = res.map(elem => elem? elem.id: '');
             expect(ids).to.deep.equal([ 'a', 'b', 'c', 'e', 'd', 'f', 'g' ]);
-            g.setEdge(new Edge('g','a', new EdgeData('dev', 1)));
+            g.setEdge('g','a', new EdgeData('dev', 1));
         })
 
         it('should throw cyclic dependencies error on topological sort given graph with cycles', () => {
             const f = function () {g.toposort()};
-            g.setEdge(new Edge('f','g', new EdgeData('dev', 2)));
+            g.setEdge('f','g', new EdgeData('dev', 2));
             expect(f).to.throw(CyclicError);
         })
 
