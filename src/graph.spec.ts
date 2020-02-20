@@ -140,12 +140,12 @@ describe('graphTester', () => {
         })
 
         it('should find immediate successors of a given node', () => {
-            const keys = [...g.immediateSuccessors('c').keys()];
+            const keys = [...g.successors('c').keys()];
             expect(keys).to.deep.equal([ 'd', 'e' ]);
         })
 
         it('should find immediate predecessors of a given node', () => {
-            const keys = [...g.immediatePredecessors('c').keys()];
+            const keys = [...g.predecessors('c').keys()];
             expect(keys).to.deep.equal([ 'a' ]);
         })
 

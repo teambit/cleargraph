@@ -354,7 +354,34 @@ export class Graph<N , E> {
    * @param nodeId the id of the source node
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  immediateSuccessors(nodeId: NodeId, filterPredicate: (edge: GraphEdge<E>) => boolean = returnTrue): Map<NodeId, GraphNode<N>>{
+  successors(nodeId: NodeId, filterPredicate: (edge: GraphEdge<E>) => boolean = returnTrue): Map<NodeId, N>{
+    return this.transformToUserNodeMap(this._successors(nodeId, filterPredicate));
+  }
+
+  /**
+   * return a map of all <nodeId, node> that point to by the given node.
+   * @param nodeId the id of the target node
+   * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
+   */
+  predecessors(nodeId: NodeId, filterPredicate: (edge: GraphEdge<E>) => boolean = returnTrue): Map<NodeId, N>{
+    return this.transformToUserNodeMap(this._predecessors(nodeId, filterPredicate));
+  }
+
+  /**
+   * return a map of all <nodeId, node> that are directly or indirectly connected to the given node.
+   * @param nodeId the id of the node
+   * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
+   */
+  neighbors(nodeId: NodeId): Map<NodeId, N>{
+    return this.transformToUserNodeMap(this._neighbors(nodeId));
+  }
+
+  /**
+   * Internal. Return a map of all <NodeId, GraphNode> that are immediately pointed to by the given node.
+   * @param nodeId the id of the source node
+   * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
+   */
+  _successors(nodeId: NodeId, filterPredicate: (edge: GraphEdge<E>) => boolean = returnTrue): Map<NodeId, GraphNode<N>>{
     let successors = new Map<NodeId, GraphNode<N>>();
     const node = this._node(nodeId);
     if (node === undefined) return successors;
@@ -372,11 +399,11 @@ export class Graph<N , E> {
   }
 
   /**
-   * return a map of all <nodeId, node> that point to by the given node.
+   * Private. Return a map of all <NodeId, GraphNode> that point to by the given node.
    * @param nodeId the id of the target node
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  immediatePredecessors(nodeId: NodeId, filterPredicate: (edge: GraphEdge<E>) => boolean = returnTrue): Map<NodeId, GraphNode<N>>{
+  _predecessors(nodeId: NodeId, filterPredicate: (edge: GraphEdge<E>) => boolean = returnTrue): Map<NodeId, GraphNode<N>>{
     let predecessors = new Map<NodeId, GraphNode<N>>();
     const node = this._node(nodeId);
     if (node === undefined) return predecessors;
@@ -394,12 +421,12 @@ export class Graph<N , E> {
   }
 
   /**
-   * return a map of all <nodeId, node> that are directly or indirectly connected to the given node.
+   * return a map of all <NodeId, GraphNode> that are directly or indirectly connected to the given node.
    * @param nodeId the id of the node
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  neighbors(nodeId: NodeId): Map<NodeId, GraphNode<N>>{
-    let neighbors = new Map([...this.immediatePredecessors(nodeId), ...this.immediateSuccessors(nodeId)]);
+  _neighbors(nodeId: NodeId): Map<NodeId, GraphNode<N>>{
+    let neighbors = new Map([...this._predecessors(nodeId), ...this._successors(nodeId)]);
     return neighbors;
   }
 
@@ -421,7 +448,7 @@ export class Graph<N , E> {
   }
 
   _successorsSubgraphUtil(nodeId: NodeId, successorsGraph: Graph<N,E>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: GraphEdge<E>) => boolean = returnTrue): Graph<N, E> {
-    const successors = [...this.immediateSuccessors(nodeId, filterPredicate).keys()] || [];
+    const successors = [...this._successors(nodeId, filterPredicate).keys()] || [];
     if (successors.length > 0 && !visited[nodeId]) {
         successors.forEach((successor:string) => {
             visited[nodeId] = true;
@@ -458,7 +485,7 @@ export class Graph<N , E> {
                        successorsList: string[] = [],
                        visited: { [key: string]: boolean } = {},
                        filterPredicate: (data: GraphEdge<E>) => boolean = returnTrue): NodeId[]{  
-        const successors = [...this.immediateSuccessors(nodeId, filterPredicate).keys()] || [];
+        const successors = [...this._successors(nodeId, filterPredicate).keys()] || [];
         if (successors.length > 0 && !visited[nodeId]) {
             successors.forEach((successor:string) => {
             visited[nodeId] = true;
@@ -487,7 +514,7 @@ export class Graph<N , E> {
   }
 
   _predecessorsSubgraphUtil(nodeId: NodeId, predecessorsGraph: Graph<N,E>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: GraphEdge<E>) => boolean = returnTrue): Graph<N, E> {
-    const predecessors = [...this.immediatePredecessors(nodeId, filterPredicate).keys()] || [];
+    const predecessors = [...this._predecessors(nodeId, filterPredicate).keys()] || [];
         if (predecessors.length > 0 && !visited[nodeId]) {
             predecessors.forEach((predecessor:string) => {
                 visited[nodeId] = true;
@@ -524,7 +551,7 @@ export class Graph<N , E> {
                        predecessorsList: string[] = [],
                        visited: { [key: string]: boolean } = {},
                        filterPredicate: (data: GraphEdge<E>) => boolean = returnTrue): NodeId[]{  
-        const predecessors = [...this.immediatePredecessors(nodeId, filterPredicate).keys()] || [];
+        const predecessors = [...this._predecessors(nodeId, filterPredicate).keys()] || [];
         if (predecessors.length > 0 && !visited[nodeId]) {
             predecessors.forEach((predecessor:string) => {
             visited[nodeId] = true;
