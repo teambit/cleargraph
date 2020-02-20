@@ -37,19 +37,19 @@ export class Graph<N , E> {
 
   /** private getter that returns a map of <nodeId, N>  and not the whole <NodeId, GraphNode<N>>*/
   get _userNodes(): Map<NodeId, N>{
-    return this.transformToUserNodeMap(this._nodes);
+    return this._transformToUserNodeMap(this._nodes);
   }
 
   /** private getter that returns a map of <EdgeId, E>  and not the whole <EdgeId, GraphEdge<E>>*/
   get _userEdges(): Map<EdgeId, E> {
-    return this.transformToUserEdgeMap(this._edges);
+    return this._transformToUserEdgeMap(this._edges);
   }
 
   /**
    * get a map of GraphNodes and return the same keys with only the attr (the node or edge data)
    * @param map a map of GraphNodes
    */
-  transformToUserNodeMap(map: Map<NodeId, GraphNode<N>>): Map<NodeId, N>{
+  _transformToUserNodeMap(map: Map<NodeId, GraphNode<N>>): Map<NodeId, N>{
     let newMap = new Map<NodeId, N>();
     for (const [key, value] of map.entries()) {
       newMap.set(key, value.attr)
@@ -61,7 +61,7 @@ export class Graph<N , E> {
    * get a map of GraphEdges and return the same keys with only the attr (the node or edge data)
    * @param map a map of GraphEdges
    */
-  transformToUserEdgeMap(map: Map<EdgeId, GraphEdge<E>>): Map<EdgeId, E>{
+  _transformToUserEdgeMap(map: Map<EdgeId, GraphEdge<E>>): Map<EdgeId, E>{
     let newMap = new Map<EdgeId, E>();
     for (const [key, value] of map.entries()) {
       newMap.set(key, value.attr)
@@ -82,7 +82,9 @@ export class Graph<N , E> {
 
   /**
    * set a new edge on the graph or override existing edge with the same source and target keys.
-   * @param edge an edge with a generic data type E
+   * @param sourceId the id of the source node
+   * @param targetId the id of the target node
+   * @param edge an edge of the generic data type E
    */
   setEdge(sourceId: string, targetId: string, edge: E): Graph<N, E> {
     const id = GraphEdge.edgeId(sourceId, targetId);
@@ -111,7 +113,7 @@ export class Graph<N , E> {
 
   /**
    * set multiple nodes on the graph.
-   * @param nodes
+   * @param nodes an array of objects {id, node}
    */
   setNodes(nodes: {id: string, node: N}[]): Graph<N, E>  {
     nodes.forEach(elem => this.setNode(elem.id, elem.node));
@@ -120,7 +122,7 @@ export class Graph<N , E> {
 
   /**
    * set multiple edges on the graph.
-   * @param edges 
+   * @param edges an array of objects {sourceId, targetId, edge}
    */
   setEdges(edges: {sourceId: string, targetId: string, edge:E}[]): Graph<N, E> {
     edges.forEach(elem => this.setEdge(elem.sourceId, elem.targetId, elem.edge));
@@ -276,7 +278,7 @@ export class Graph<N , E> {
    * @param nodeId NodeId==string
    */
   inEdges(nodeId: NodeId): Map<EdgeId, E>{
-    return this.transformToUserEdgeMap(this._inEdges(nodeId));
+    return this._transformToUserEdgeMap(this._inEdges(nodeId));
   }
 
   /**
@@ -284,7 +286,7 @@ export class Graph<N , E> {
    * @param nodeId NodeId==string
    */
   outEdges(nodeId: NodeId): Map<EdgeId, E>{
-    return this.transformToUserEdgeMap(this._outEdges(nodeId));
+    return this._transformToUserEdgeMap(this._outEdges(nodeId));
   }
 
   /**
@@ -292,7 +294,7 @@ export class Graph<N , E> {
    * @param nodeId NodeId==string
    */
   nodeEdges(nodeId: NodeId): Map<EdgeId, E>{
-    return this.transformToUserEdgeMap(this._nodeEdges(nodeId));
+    return this._transformToUserEdgeMap(this._nodeEdges(nodeId));
   }
 
   /**
@@ -354,8 +356,8 @@ export class Graph<N , E> {
    * @param nodeId the id of the source node
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  successors(nodeId: NodeId, filterPredicate: (edge: GraphEdge<E>) => boolean = returnTrue): Map<NodeId, N>{
-    return this.transformToUserNodeMap(this._successors(nodeId, filterPredicate));
+  successors(nodeId: NodeId, filterPredicate: (edge: E) => boolean = returnTrue): Map<NodeId, N>{
+    return this._transformToUserNodeMap(this._successors(nodeId, filterPredicate));
   }
 
   /**
@@ -363,8 +365,8 @@ export class Graph<N , E> {
    * @param nodeId the id of the target node
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  predecessors(nodeId: NodeId, filterPredicate: (edge: GraphEdge<E>) => boolean = returnTrue): Map<NodeId, N>{
-    return this.transformToUserNodeMap(this._predecessors(nodeId, filterPredicate));
+  predecessors(nodeId: NodeId, filterPredicate: (edge: E) => boolean = returnTrue): Map<NodeId, N>{
+    return this._transformToUserNodeMap(this._predecessors(nodeId, filterPredicate));
   }
 
   /**
@@ -372,8 +374,8 @@ export class Graph<N , E> {
    * @param nodeId the id of the node
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  neighbors(nodeId: NodeId): Map<NodeId, N>{
-    return this.transformToUserNodeMap(this._neighbors(nodeId));
+  neighbors(nodeId: NodeId, filterPredicate: (edge: E) => boolean = returnTrue): Map<NodeId, N>{
+    return this._transformToUserNodeMap(this._neighbors(nodeId, filterPredicate));
   }
 
   /**
@@ -381,12 +383,12 @@ export class Graph<N , E> {
    * @param nodeId the id of the source node
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  _successors(nodeId: NodeId, filterPredicate: (edge: GraphEdge<E>) => boolean = returnTrue): Map<NodeId, GraphNode<N>>{
+  _successors(nodeId: NodeId, filterPredicate: (edge: E) => boolean = returnTrue): Map<NodeId, GraphNode<N>>{
     let successors = new Map<NodeId, GraphNode<N>>();
     const node = this._node(nodeId);
     if (node === undefined) return successors;
     node.outEdges.forEach(edgeId => {
-      const edge = this._edges.get(edgeId);
+      const edge = this._edges.get(edgeId)?.attr;
       if(edge != undefined && filterPredicate(edge))
       {  const { sourceId, targetId } = GraphEdge.parseEdgeId(edgeId);
         const targetNode = this._node(targetId);
@@ -403,12 +405,12 @@ export class Graph<N , E> {
    * @param nodeId the id of the target node
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  _predecessors(nodeId: NodeId, filterPredicate: (edge: GraphEdge<E>) => boolean = returnTrue): Map<NodeId, GraphNode<N>>{
+  _predecessors(nodeId: NodeId, filterPredicate: (edge: E) => boolean = returnTrue): Map<NodeId, GraphNode<N>>{
     let predecessors = new Map<NodeId, GraphNode<N>>();
     const node = this._node(nodeId);
     if (node === undefined) return predecessors;
     node.inEdges.forEach(edgeId => {
-      const edge = this._edges.get(edgeId);
+      const edge = this._edges.get(edgeId)?.attr;
       if(edge != undefined && filterPredicate(edge))
       {  const { sourceId, targetId } = GraphEdge.parseEdgeId(edgeId);
         const sourceNode = this._node(sourceId);
@@ -425,8 +427,8 @@ export class Graph<N , E> {
    * @param nodeId the id of the node
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  _neighbors(nodeId: NodeId): Map<NodeId, GraphNode<N>>{
-    let neighbors = new Map([...this._predecessors(nodeId), ...this._successors(nodeId)]);
+  _neighbors(nodeId: NodeId, filterPredicate: (edge: E) => boolean = returnTrue): Map<NodeId, GraphNode<N>>{
+    let neighbors = new Map([...this._predecessors(nodeId, filterPredicate), ...this._successors(nodeId, filterPredicate)]);
     return neighbors;
   }
 
@@ -435,7 +437,7 @@ export class Graph<N , E> {
    * @param node the source node of the sub-graph required 
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  successorsSubgraph(nodeId: NodeId, filterPredicate: (edge: GraphEdge<E>) => boolean = returnTrue): Graph<N, E>{
+  successorsSubgraph(nodeId: NodeId, filterPredicate: (edge: E) => boolean = returnTrue): Graph<N, E>{
     let g = new Graph<N,E>();
     let graphNode = this._node(nodeId);
     if(!graphNode){
@@ -447,7 +449,7 @@ export class Graph<N , E> {
     return this._successorsSubgraphUtil(nodeId, g, {}, filterPredicate)
   }
 
-  _successorsSubgraphUtil(nodeId: NodeId, successorsGraph: Graph<N,E>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: GraphEdge<E>) => boolean = returnTrue): Graph<N, E> {
+  _successorsSubgraphUtil(nodeId: NodeId, successorsGraph: Graph<N,E>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: E) => boolean = returnTrue): Graph<N, E> {
     const successors = [...this._successors(nodeId, filterPredicate).keys()] || [];
     if (successors.length > 0 && !visited[nodeId]) {
         successors.forEach((successor:string) => {
@@ -469,10 +471,10 @@ export class Graph<N , E> {
    * @param node the source node of the successor array required 
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  successorsArray(nodeId: NodeId, filterPredicate: (data: GraphEdge<E>) => boolean = returnTrue): N[]{
+  successorsArray(nodeId: NodeId, filterPredicate: (data: E) => boolean = returnTrue): N[]{
     const successorIds = _.uniq(this._successorsArrayUtil(nodeId, [], {}, filterPredicate));
     let successors: N[] = []
-    successorIds.forEach((id:NodeId) => {
+    successorIds.forEach((id: NodeId) => {
       let node = this.node(id);
       if (node != undefined){
         successors.push(node);
@@ -484,7 +486,7 @@ export class Graph<N , E> {
   _successorsArrayUtil(nodeId: string,
                        successorsList: string[] = [],
                        visited: { [key: string]: boolean } = {},
-                       filterPredicate: (data: GraphEdge<E>) => boolean = returnTrue): NodeId[]{  
+                       filterPredicate: (data: E) => boolean = returnTrue): NodeId[]{  
         const successors = [...this._successors(nodeId, filterPredicate).keys()] || [];
         if (successors.length > 0 && !visited[nodeId]) {
             successors.forEach((successor:string) => {
@@ -501,7 +503,7 @@ export class Graph<N , E> {
    * @param node the target node of the sub-graph required 
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  predecessorsSubgraph(nodeId: NodeId, filterPredicate: (edge: GraphEdge<E>) => boolean = returnTrue): Graph<N, E>{
+  predecessorsSubgraph(nodeId: NodeId, filterPredicate: (edge: E) => boolean = returnTrue): Graph<N, E>{
     let g = new Graph<N,E>();
     let graphNode = this._node(nodeId);
     if(!graphNode){
@@ -513,7 +515,7 @@ export class Graph<N , E> {
     return this._predecessorsSubgraphUtil(nodeId, g, {}, filterPredicate);
   }
 
-  _predecessorsSubgraphUtil(nodeId: NodeId, predecessorsGraph: Graph<N,E>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: GraphEdge<E>) => boolean = returnTrue): Graph<N, E> {
+  _predecessorsSubgraphUtil(nodeId: NodeId, predecessorsGraph: Graph<N,E>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: E) => boolean = returnTrue): Graph<N, E> {
     const predecessors = [...this._predecessors(nodeId, filterPredicate).keys()] || [];
         if (predecessors.length > 0 && !visited[nodeId]) {
             predecessors.forEach((predecessor:string) => {
@@ -535,7 +537,7 @@ export class Graph<N , E> {
    * @param node the source node of the predecessor array required 
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  predecessorsArray(nodeId: NodeId, filterPredicate: (data: GraphEdge<E>) => boolean = returnTrue): N[]{
+  predecessorsArray(nodeId: NodeId, filterPredicate: (data: E) => boolean = returnTrue): N[]{
     const predecessorIds = _.uniq(this._predecessorsArrayUtil(nodeId, [], {}, filterPredicate));
     let predecessors: N[] = []
     predecessorIds.forEach((id:NodeId) => {
@@ -550,7 +552,7 @@ export class Graph<N , E> {
   _predecessorsArrayUtil(nodeId: string,
                        predecessorsList: string[] = [],
                        visited: { [key: string]: boolean } = {},
-                       filterPredicate: (data: GraphEdge<E>) => boolean = returnTrue): NodeId[]{  
+                       filterPredicate: (data: E) => boolean = returnTrue): NodeId[]{  
         const predecessors = [...this._predecessors(nodeId, filterPredicate).keys()] || [];
         if (predecessors.length > 0 && !visited[nodeId]) {
             predecessors.forEach((predecessor:string) => {
