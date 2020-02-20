@@ -81,12 +81,12 @@ describe('graphTester', () => {
             expect(g.hasEdge("c", "d")).to.be.true;
         })
 
-        it('should return all graph nodes', () => {
+        it('should return all graph nodes as a map', () => {
             const keys = [...g.nodesMap().keys()];
             expect(keys).to.deep.equal([ 'a', 'b', 'c', 'd', 'e', 'f', 'g' ]);
         })
 
-        it('should return all graph edges', () => {
+        it('should return all graph edges as a map', () => {
             const keys = [...g.edgesMap().keys()];
             expect(keys).to.deep.equal(["a->b","a->c","c->d","c->e","d->f","e->d","g->a"]);
         })

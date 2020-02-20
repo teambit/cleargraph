@@ -24,23 +24,19 @@ In addition, in order to allow graph serialization, N and E **must implement `to
 Here is an example of N (Node Data) and E (Edge Data) classes:
 
 ```typescript
-class NodeData implements Serializable {
+class Orb { // a node in the graph
     name: string;
     radius: number;
     constructor(name:string, radius:number){
         this.name = name;
         this.radius = radius;
     }
-    toString(){
+    toString(){ //Add a specific toString() implementation if your class will not stringify correctly with just JSON.stringiy when serializing the graph
         return JSON.stringify({name: this.name, radius: this.radius});
-    }
-    fromString(json:string){
-        const obj = JSON.parse(json);
-        return new NodeData(obj.name, obj.radius);
     }
 }
 
-class EdgeData implements Serializable {
+class OrbRelation{ // an edge in the graph
     relationType: string;
     proximity: number;
     constructor(relationType: string, proximity: number){
@@ -50,26 +46,55 @@ class EdgeData implements Serializable {
     toString(){
         return JSON.stringify({relationType: this.relationType, proximity: this.proximity});
     }
-    fromString(json:string){
-        const obj = JSON.parse(json);
-        return new NodeData(obj.relationType, obj.proximity);
-    }
 }
 ```
 
-Now we will use these classes to implement a graph:
+Using these classes to implement a graph:
 
 ```typescript
 
 let g = new Graph<NodeData, EdgeData>();
 
-new Node('a', new NodeData('comp1', '1.0.0'))
+g.setNode('earth', new Orb('earth', 6371));
+g.setNode('moon', new Orb('moon', 1737));
+g.setNode('sun', new Orb('sun', 696340));
+g.setEdge('moon','earth', new OrbRelation('orbits', 384400));
+g.setEdge('earth','sun', new OrbRelation('orbits', 147240000));
+```
 
-g.setNode(new Node('earth', new NodeData('earth', 6371)));
-g.setNode(new Node('moon', new NodeData('moon', 1737)));
-g.setNode(new Node('sun', new NodeData('sun', 696340)));
-g.setEdge(new Edge('moon','earth', new EdgeData('orbits', 384400)));
-g.setEdge(new Edge('earth','sun', new EdgeData('orbits', 147240000)));
+Some uses of the graph:
+
+```typescript
+g.node('moon');
+// Orb{name: 'moon', radius: 1737}
+```
+
+```typescript
+g.edge('earth', 'sun');
+//OrbRelation{relationType: 'orbits', proximity: 147240000}
+```
+
+```typescript
+g.succssors('moon'); // returns the immediate nodes the given node point to
+// Map 
+// {"earth" => Orb} {key: "earth", value: Orb}
+//     key:"earth"
+//     value:Orb {name: "earth", radius: 6371}
+```
+
+```typescript
+g.successorsArray('moon'); // returns an array of all the nodes the given node points to *recursively*
+// Array(2) [Orb, Orb]
+// 0:Orb {name: "earth",radius: 6371}
+// 1:Orb {name: "sun", radius: 696340}
+```
+
+```typescript
+g.toposort(); // performs a topological sort on the graph
+// Array(3) [Orb, Orb, Orb]
+// 0:Orb {name: "moon",radius: 1737}
+// 1:Orb {name: "earth",radius: 6371}
+// 2:Orb {name: "sun", radius: 696340}
 ```
 
 ## Contributing
