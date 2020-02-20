@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+
+## [4.0.0] - 2020-02-20
+
+### BREAKING CHANGES
+* Separated node and edge IDs from their data:
+    * setters signatures changed:
+        * setNode(id: string, node: N)
+        * setEdge(sourceId: string, targetId: string, edge: E)
+        * setNodes(nodes: {id: string, node: N}[])
+        * setEdges(edges: {sourceId: string, targetId: string, edge:E}[])
+    * API getters now get nodeId(string), and return N (user defined node) objects and not the internal GraphNode objects.
+    * Updated all related code and added internal getters and setters that return GraphNode objects.
+* No longer need to implement Serializable. Implementing toString() is now optional on the user-defined node (N). If not implemented, the default JSON.stringify() is used. 
+
 ## [3.0.3] - 2020-02-12
 
 ### New
