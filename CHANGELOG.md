@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
 
+## [4.1.0] - 2020-02-25
+
+### BREAKING CHANGES
+* Removed nodesMap() and edgesMap(). nodes and edges getters now return a map.
+
+### Bug fixes
+* Corrected graph.stringify()
+
 ## [4.0.0] - 2020-02-20
 
 ### BREAKING CHANGES
