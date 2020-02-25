@@ -3,13 +3,19 @@ import _ from 'lodash';
 
 
 export function toJson(graph: Graph<any, any>){
-    let nodes = graph.nodes;
-
+    let nodesJson = {};
+    for (let [nodeId, nodeData] of graph.nodes.entries()) {
+      nodesJson[nodeId] = nodeData.toString();
+    }
+    let edgesJson = {};
+    for (let [edgeId, edgeData] of graph.edges.entries()) {
+      edgesJson[edgeId] = edgeData.toString();
+    }
     let json = {
-        nodes: graph.nodes.map(node => node.toString()),
-        edges: graph.edges.map(edge => edge.toString())
+        nodes: nodesJson,
+        edges: edgesJson
       };
-      return JSON.stringify(json);
+    return JSON.stringify(json);
 }
 
 

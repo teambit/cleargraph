@@ -181,30 +181,16 @@ export class Graph<N , E> {
   }
 
   /**
-   * return an array of all nodes in the graph.
-   */
-  get nodes(): N[] {
-    return [...this._nodes.values()].map(elem => elem.attr);
-  }
-
-  /**
-   * return an array of all edges in the graph.
-   */
-  get edges(): E[] {
-    return [...this._edges.values()].map(elem => elem.attr);
-  }
-
-  /**
    * get a map of all <nodeId, node> in the graph.
    */
-  nodesMap(): Map<NodeId, N>{
+  get nodes(): Map<NodeId, N>{
     return this._userNodes;
   }
 
   /**
    * get all <edgeId, edge> in the graph.
    */
-  edgesMap(): Map<EdgeId, E>{
+  get edges(): Map<EdgeId, E>{
     return this._userEdges;
   }
 
