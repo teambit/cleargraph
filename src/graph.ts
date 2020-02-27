@@ -1,10 +1,9 @@
 import { GraphNode, NodeId } from './index';
 import { GraphEdge, EdgeId } from './index';
-import { CyclicError } from './index'
+import { CyclicError, NodeDoesntExist } from './index'
 import _ from 'lodash';
 import { tarjan } from './algorithms';
 import { toJson } from './json';
-
 
 /**
  * Graph abstractly represents a graph with arbitrary objects
@@ -640,6 +639,38 @@ export class Graph<N , E> {
 
   findCycles(){
     return findCycles(this);
+  }
+
+  /**
+   * Merge the provided graphs (of the same type as this graph) from right to left into this graph
+   * @param graphs any number of Graph objects
+   */
+  merge(graphs: Graph<N, E>[]){
+    let mergedGraph: Graph<N, E> = this; 
+    graphs.forEach(incomingGraph => {
+      //iterate on nodes
+      for (let [nodeId, nodeData] of incomingGraph.nodes) {
+        mergedGraph.setNode(nodeId, nodeData); // override right node data with left (incoming) node data if this node id exists or creates a new node with this id if doesn't exist
+      }
+      //iterate on edges
+      for (let [edgeId, edgeData] of incomingGraph.edges) {
+        const sourceId = incomingGraph._edges.get(edgeId)?.sourceId;
+        const targetId = incomingGraph._edges.get(edgeId)?.targetId
+        if(mergedGraph.edges.has(edgeId) && !!sourceId && !!targetId){
+          mergedGraph.setEdge(sourceId, targetId, edgeData); // override right edge data with left (incoming) edge data if edge id exists
+        }
+        else {
+          // make sure both source and target nodes exist
+          if (!!sourceId && !!targetId && mergedGraph.hasNode(sourceId) && mergedGraph.hasNode(targetId)){
+            mergedGraph.setEdge(sourceId, targetId, edgeData);
+          }
+          else {
+            throw NodeDoesntExist;
+          }
+        }
+      }
+    });
+    return mergedGraph;
   }
 
   /**

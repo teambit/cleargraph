@@ -36,7 +36,6 @@ class EdgeData {
     }
 }
 
-
 describe('graphTester', () => {
     let nodeArr = [
         {id: 'a', node: new NodeData('a', 'comp1', '1.0.0')},
@@ -59,6 +58,8 @@ describe('graphTester', () => {
     ];
 
     let g = new Graph<NodeData, EdgeData>(nodeArr, edgeArr);
+    let h = new Graph<NodeData, EdgeData>();
+    let i = new Graph<NodeData, EdgeData>();
     
     describe('basicTester', () => {
         it('should return node', () => {
@@ -208,8 +209,28 @@ describe('graphTester', () => {
             const f = function () {g.toposort()};
             g.setEdge('f','g', new EdgeData('dev', 2));
             expect(f).to.throw(CyclicError);
+            g.deleteEdge('f','g');
         })
 
+        before('creating graphs for merge', function(){
+            console.log('before');
+            h.setNode('a', new NodeData('a', 'comp17', '12.0.0'));
+            h.setNode('h', new NodeData('h', 'comp20', '1.0.0'));
+            h.setNode('i', new NodeData('i', 'comp11', '3.0.0'));
+            h.setEdge('a', 'h', new EdgeData('peer', 3));
+            h.setEdge('i', 'h', new EdgeData('dev', 2));
+
+            i.setNode('a', new NodeData('a', 'comp34', '3.0.0'));
+            i.setNode('j', new NodeData('j', 'comp53', '1.0.0'));
+            i.setEdge('j', 'a', new EdgeData('peer', 1));
+          });
+
+        it('should merge graphs', () => {
+            const res = g.merge([h, i]);
+            expect(res.nodes.size).to.equal(10);
+            expect(res.edges.size).to.equal(10);
+            expect(res.edges.has('i->h')).to.be.true;
+
+        })
     })
-    
 })
