@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+
+## [4.2.1] - 2020-02-27
+
+### bug fixes
+* return type change in toposort and small fix in readme
+
+
 ## [4.2.0] - 2020-02-27
 
 ### New

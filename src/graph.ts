@@ -551,9 +551,8 @@ export class Graph<N , E> {
 
   /**
    * A topological sort of the graph
-   * @param initialNodes An optional param that enables to get topological sorting only on specific nodes in the graph 
    */
-  toposort(reverse:boolean=false): GraphNode<N>[]{
+  toposort(reverse:boolean=false): N[]{
     let nodes = this._toposort().map(nodeId => this.node(nodeId));
     nodes = _.compact(nodes) // remove any undefined entries
     //@ts-ignore
@@ -645,7 +644,7 @@ export class Graph<N , E> {
    * Merge the provided graphs (of the same type as this graph) from right to left into this graph
    * @param graphs any number of Graph objects
    */
-  merge(graphs: Graph<N, E>[]){
+  merge(graphs: Graph<N, E>[]): Graph<N, E>{
     let mergedGraph: Graph<N, E> = this; 
     graphs.forEach(incomingGraph => {
       //iterate on nodes

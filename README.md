@@ -53,7 +53,7 @@ Using these classes to implement a graph:
 
 ```typescript
 
-let g = new Graph<NodeData, EdgeData>();
+let g = new Graph<Orb, OrbRelation>();
 
 g.setNode('earth', new Orb('earth', 6371));
 g.setNode('moon', new Orb('moon', 1737));
