@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+## [4.2.2] - 2020-03-04
+
+### bug fixes
+* fixed findCycles()
 
 ## [4.2.1] - 2020-02-27
 
