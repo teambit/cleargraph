@@ -212,6 +212,13 @@ describe('graphTester', () => {
             g.deleteEdge('f','g');
         })
 
+        it('should return all cycles in graph', () => {
+            g.setEdge('f','g', new EdgeData('dev', 2));
+            expect(g.findCycles()).to.deep.equal([ [ 'e', 'g', 'f', 'd', 'c', 'a' ] ]);
+            g.deleteEdge('f','g');
+        })
+        
+
         before('creating graphs for merge', function(){
             console.log('before');
             h.setNode('a', new NodeData('a', 'comp17', '12.0.0'));

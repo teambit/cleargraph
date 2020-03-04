@@ -43,13 +43,13 @@ function dfs(v) {
     //@ts-ignore
     results.push(cmpt);
     }
-}
-
-g.nodeKeys().forEach(function(v) {
-    if (!_.has(visited, v)) {
-    dfs(v);
     }
-});
 
-return results;
+    [...g.nodes.keys()].forEach(function(v) {
+        if (!_.has(visited, v)) {
+        dfs(v);
+        }
+    });
+
+    return results;
 }
