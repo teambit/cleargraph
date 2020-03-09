@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+## [4.3.0] - 2020-03-09
+
+### bug fixes
+* fixed graph stringify()
+
+### New
+* Added graph parse(json:string) which builds a graph from JSON string
+* N and E should now implement 'strigify()' instead of 'toString()' for graph serialization. Otherwise a default stringify() will be called, which may not work with complex objects.
+
+
 ## [4.2.2] - 2020-03-04
 
 ### bug fixes
