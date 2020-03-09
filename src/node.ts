@@ -71,11 +71,11 @@ export class GraphNode<N> {
     return isEqual(this.attr, node.attr);
   }
 
-  toString() {
+  stringify() {
     let attrStr: string = '';
-    if (!!this.attr['toString'] && typeof this.attr['toString'] === 'function'){
+    if (!!this.attr['stringify'] && typeof this.attr['stringify'] === 'function'){
       //@ts-ignore
-      attrStr = this.attr.toString();
+      attrStr = this.attr.stringify();
     }
     else{
       attrStr = JSON.stringify(this.attr);
@@ -88,13 +88,11 @@ export class GraphNode<N> {
     );
   }
 
-  static fromObject(obj:{ id: string, attr: any }) {
-    return new GraphNode(obj.id, obj.attr);
-  }
-
-  static fromString(json: string) {
-    const obj = JSON.parse(json);
-    return new GraphNode(obj.id, obj.attr);
+  static fromObject(obj:{ id: string, node: any }) {
+    if(!obj.hasOwnProperty('id')){
+      throw Error('missing object id')
+    }
+    return {id: obj.id, node: obj.node};
   }
 
 }

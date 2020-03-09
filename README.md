@@ -19,7 +19,8 @@ The nodes and edges in the graph are represented by key-value pairs where the ke
 and the generics `N` and `E` represent the node value and edge value respectively.
 
 When instantiating the graph, specify the values of `N` and `E`.
-In addition, in order to allow graph serialization, N and E **must implement `toString()` and can implement `fromString()`**.
+In addition, in order to allow graph serialization, N and E **should implement `stringify()`**.
+If it's not implemented, the graph will call its own default serialization method that might not work for complex objects.
 
 Here is an example of N (Node Data) and E (Edge Data) classes:
 
@@ -31,7 +32,7 @@ class Orb { // a node in the graph
         this.name = name;
         this.radius = radius;
     }
-    toString(){ //Add a specific toString() implementation if your class will not stringify correctly with just JSON.stringiy when serializing the graph
+    stringify(){ // Add a specific stringify() implementation if your class will not stringify correctly with just JSON.stringiy when serializing the graph
         return JSON.stringify({name: this.name, radius: this.radius});
     }
 }
@@ -43,7 +44,7 @@ class OrbRelation{ // an edge in the graph
         this.relationType = relationType;
         this.proximity = proximity;
     }
-    toString(){
+    stringify(){
         return JSON.stringify({relationType: this.relationType, proximity: this.proximity});
     }
 }

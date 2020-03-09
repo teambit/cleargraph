@@ -11,12 +11,8 @@ class NodeData {
         this.name = name;
         this.version = version;
     }
-    toString(){
+    stringify(){
         return JSON.stringify({name: this.name, version: this.version});
-    }
-    fromString(json:string){
-        const obj = JSON.parse(json);
-        return new NodeData(obj.id, obj.name, obj.version);
     }
 }
 
@@ -27,12 +23,8 @@ class EdgeData {
         this.dep = dep;
         this.semDist = semDist;
     }
-    toString(){
+    stringify(){
         return JSON.stringify({dep: this.dep, semDist: this.semDist});
-    }
-    fromString(json:string){
-        const obj = JSON.parse(json);
-        return new EdgeData(obj.dep, obj.semDist);
     }
 }
 
@@ -217,6 +209,26 @@ describe('graphTester', () => {
             expect(g.findCycles()).to.deep.equal([ [ 'e', 'g', 'f', 'd', 'c', 'a' ] ]);
             g.deleteEdge('f','g');
         })
+
+        // it('should stringify graph', () => {
+        //     const res = g.stringify();
+        //     console.log(res)
+        // })
+
+        it('should build graph from JSON', () => {
+            const json = {
+                "nodes": [
+                    {"id": 'a', "node": 'hello'},
+                    {"id": 'b', node: 'world'}
+                ],
+                "edges": [
+                    {"sourceId": 'a', "targetId": 'b', "edge": {}}
+                ]
+            };
+            const newGraph = Graph.parse(JSON.stringify(json));
+            expect([...newGraph.nodes.keys()]).to.deep.equal(['a', 'b']);
+            expect([...newGraph.edges.keys()]).to.deep.equal(['a->b']);
+        } )
         
 
         before('creating graphs for merge', function(){

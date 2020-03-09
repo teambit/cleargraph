@@ -3,7 +3,6 @@ import { GraphEdge, EdgeId } from './index';
 import { CyclicError, NodeDoesntExist } from './index'
 import _ from 'lodash';
 import { tarjan } from './algorithms';
-import { toJson } from './json';
 
 /**
  * Graph abstractly represents a graph with arbitrary objects
@@ -171,12 +170,20 @@ export class Graph<N , E> {
   }
 
   /**
-   * private function that returns a GraphEdge object from the graph by its ID. Undefined if id is not in graph.
+   * private function that returns a GraphEdge object from the graph by its source and target IDs. Undefined if id is not in graph.
    * @param sourceId the id of the source node
    * @param targetId the id of the target node
    */
   _edge(sourceId: string, targetId: string): GraphEdge<E> | undefined {
     return this._edges.get(GraphEdge.edgeId(sourceId, targetId));
+  }
+
+  /**
+   * private function that returns a GraphEdge object from the graph by its ID. Undefined if id is not in graph.
+   * @param edgeId the internal id the graph assigns to edges of the form "a->b"
+   */
+  _edgeById(edgeId: string){
+    return this._edges.get(edgeId);
   }
 
   /**
@@ -674,10 +681,72 @@ export class Graph<N , E> {
 
   /**
    * stringify the graph to a JSON.
+   * @param graph
    */
   stringify(graph?: Graph<N, E>): string {
-    return graph? toJson(graph) : toJson(this);
+    return graph? this._toJson(graph) :this. _toJson(this);
   } 
+
+  /**
+   * build graph from json
+   * @param json should be of the format: 
+   * { 
+   *   nodes: {id: string, node: N}[],
+   *   edges: {sourceId: string, targetId: string, edge:E}[]
+   * }
+   */
+  static parse(json: string){
+    return this._fromJson(json);
+  }
+
+  _toJson(graph: Graph<any, any>){
+    let nodesJson = {};
+    for (let [nodeId, nodeData] of graph.nodes.entries()) {
+      const graphNode = graph._node(nodeId);
+      if (!! graphNode){
+        nodesJson[nodeId] =graphNode.stringify();
+      }
+    }
+    let edgesJson = {};
+    for (let [edgeId, edgeData] of graph.edges.entries()) {
+      const graphEdge = graph._edgeById(edgeId);
+      if (!! graphEdge){
+        edgesJson[edgeId] = graphEdge.stringify();
+      }
+    }
+    let json = {
+        nodes: nodesJson,
+        edges: edgesJson
+      };
+    return JSON.stringify(json);
+}
+
+  /**
+  * builds a graph from the provided JSON.
+  * @param json should be of the format: 
+  * { 
+  *   nodes: {id: string, node: N}[],
+  *   edges: {sourceId: string, targetId: string, edge:E}[]
+  * }
+  */
+  static _fromJson(json: string){
+    const obj = JSON.parse(json);
+    let graph = new Graph();
+    if (!obj.hasOwnProperty('nodes') || !obj.hasOwnProperty('edges')){
+      throw Error('missing properties on JSON. Should contain nodes: {id: string, node: N}[], and edges: {sourceId: string, targetId: string, edge:E}[]');
+    }
+    obj.nodes.forEach(nodeObj => {
+      const res = GraphNode.fromObject(nodeObj);
+      graph.setNode(res.id, res.node);
+
+    });
+    obj.edges.forEach(edgeObj => {
+      const res = GraphEdge.fromObject(edgeObj);
+      graph.setEdge(res.sourceId, res.targetId, res.edge);
+
+    });
+    return graph;
+  }
 
   bfs(){
 

@@ -26,11 +26,11 @@ export class GraphEdge<E> {
     this.attr = attr;
   }
 
-  toString() {
+  stringify() {
     let attrStr: string = '';
-    if (!!this.attr['toString'] && typeof this.attr['toString'] === 'function'){
+    if (!!this.attr['stringify'] && typeof this.attr['stringify'] === 'function'){
       //@ts-ignore
-      attrStr = this.attr.toString();
+      attrStr = this.attr.stringify();
     }
     else{
       attrStr = JSON.stringify(this.attr);
@@ -44,15 +44,16 @@ export class GraphEdge<E> {
     );
   }
 
-  static fromObject(obj:{ sourceId: string, targetId: string, attr: any }) {
-    return new GraphEdge(obj.sourceId, obj.targetId, obj.attr);
+  static fromObject(obj:{ sourceId: string, targetId: string, edge: any }) {
+    if(!obj.hasOwnProperty('sourceId')){
+      throw Error('missing source id')
+    }
+    if(!obj.hasOwnProperty('targetId')){
+      throw Error('missing target id')
+    }
+    return {sourceId: obj.sourceId, targetId: obj.targetId, edge: obj.edge};
   }
-
-  static fromString(json: string) {
-    const obj = JSON.parse(json);
-    return new GraphEdge(obj.sourceId, obj.targetId, obj.attr);
-  }
-
+  
   static edgeId(sourceId: NodeId, targetId: NodeId): EdgeId {
     return `${sourceId}->${targetId}`;
   }
