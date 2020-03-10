@@ -204,6 +204,18 @@ describe('graphTester', () => {
             g.deleteEdge('f','g');
         })
 
+        it('should find all paths from one node to another', () => {
+            g.setEdge('a','d', new EdgeData('dev', 2));
+            g.setEdge('e','f', new EdgeData('dev', 2));
+            expect(g.allPaths('a', 'd')).to.deep.equal([
+                ['a', 'c', 'd'],
+                ['a', 'c', 'e', 'd'],
+                ['a', 'd']
+            ]);
+            g.deleteEdge('a','d');
+            g.deleteEdge('e','f');
+        })
+
         it('should return all cycles in graph', () => {
             g.setEdge('f','g', new EdgeData('dev', 2));
             expect(g.findCycles()).to.deep.equal([ [ 'e', 'g', 'f', 'd', 'c', 'a' ] ]);

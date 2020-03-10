@@ -680,6 +680,39 @@ export class Graph<N , E> {
   }
 
   /**
+   * find all paths from one node to another node.
+   * @param sourceId
+   * @param targetId
+   */
+  allPaths(sourceId: NodeId, targetId: NodeId): NodeId[][]{
+    const paths: NodeId[][] = this._allPaths(sourceId, targetId, [], []);
+    return paths;
+  }
+
+  _allPaths(source: NodeId, target: NodeId, currPath: NodeId[], paths: NodeId[][], visited: { [key: string]: boolean } = {}){
+      // Mark current node as visited and store in current path
+        visited[source]= true;
+        currPath.push(source);
+        // If current node is same as destination, add current path to paths
+        if (source === target){
+                    paths.push(_.cloneDeep(currPath));
+        }
+        else{
+            // If current node is not target, recur for all its succesors
+            const successors = [...this._successors(source).keys()] || [];
+            successors.forEach(nodeId => {
+              if (!visited[nodeId]){
+                this._allPaths(nodeId, target, currPath, paths, visited);
+              }
+            });
+        }
+        // Remove current node from currentPath[] and mark it as unvisited
+        currPath.pop()
+        visited[source]= false;
+        return paths;
+  }
+
+  /**
    * stringify the graph to a JSON.
    * @param graph
    */
