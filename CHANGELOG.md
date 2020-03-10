@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+## [5.1.0] - 2020-03-10
+
+### New
+* Added allPaths(source, target) which finds all possible paths between two nodes
+
+
 ## [5.0.0] - 2020-03-10
 
 ### BREAKING CHANGES
