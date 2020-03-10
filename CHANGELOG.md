@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+## [5.0.0] - 2020-03-10
+
+### BREAKING CHANGES
+* Changed the output of graph stringify() to match the input of graph parse():
+```
+{
+    nodes: {id: string, node: string}[],
+    edges: {sourceId: string, targetId: string, edge: string}[]
+}
+```
+
 ## [4.3.0] - 2020-03-09
 
 ### bug fixes
