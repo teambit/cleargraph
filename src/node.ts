@@ -80,12 +80,7 @@ export class GraphNode<N> {
     else{
       attrStr = JSON.stringify(this.attr);
     }
-    return JSON.stringify(
-      {
-        id: this.id, 
-        attr: attrStr
-      }
-    );
+    return attrStr;
   }
 
   static fromObject(obj:{ id: string, node: any }) {

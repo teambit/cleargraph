@@ -228,6 +228,8 @@ describe('graphTester', () => {
             const newGraph = Graph.parse(JSON.stringify(json));
             expect([...newGraph.nodes.keys()]).to.deep.equal(['a', 'b']);
             expect([...newGraph.edges.keys()]).to.deep.equal(['a->b']);
+            // const str = newGraph.stringify();
+            // const graphFromStr = Graph.parse(str);
         } )
         
 

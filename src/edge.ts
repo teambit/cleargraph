@@ -35,13 +35,7 @@ export class GraphEdge<E> {
     else{
       attrStr = JSON.stringify(this.attr);
     }
-    return JSON.stringify(
-      {
-        sourceId: this.sourceId,
-        targetId: this.targetId, 
-        attr: attrStr
-      }
-    );
+    return attrStr;
   }
 
   static fromObject(obj:{ sourceId: string, targetId: string, edge: any }) {
@@ -53,7 +47,7 @@ export class GraphEdge<E> {
     }
     return {sourceId: obj.sourceId, targetId: obj.targetId, edge: obj.edge};
   }
-  
+
   static edgeId(sourceId: NodeId, targetId: NodeId): EdgeId {
     return `${sourceId}->${targetId}`;
   }

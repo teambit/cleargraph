@@ -700,23 +700,30 @@ export class Graph<N , E> {
   }
 
   _toJson(graph: Graph<any, any>){
-    let nodesJson = {};
+    let nodeArray: {id: string, node: string}[]= [];
     for (let [nodeId, nodeData] of graph.nodes.entries()) {
       const graphNode = graph._node(nodeId);
       if (!! graphNode){
-        nodesJson[nodeId] =graphNode.stringify();
+        nodeArray.push({
+          id: nodeId,
+          node: graphNode.stringify()
+        });
       }
     }
-    let edgesJson = {};
+    let edgeArray: {sourceId: string, targetId: string, edge: string}[] = [];
     for (let [edgeId, edgeData] of graph.edges.entries()) {
       const graphEdge = graph._edgeById(edgeId);
       if (!! graphEdge){
-        edgesJson[edgeId] = graphEdge.stringify();
+        edgeArray.push ({
+          sourceId: graphEdge.sourceId,
+          targetId: graphEdge.targetId,
+          edge: graphEdge.stringify()
+        });
       }
     }
     let json = {
-        nodes: nodesJson,
-        edges: edgesJson
+        nodes: nodeArray,
+        edges: edgeArray
       };
     return JSON.stringify(json);
 }
