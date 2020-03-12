@@ -187,6 +187,17 @@ export class Graph<N , E> {
   }
 
   /**
+   * get an edgeId of the format "a->b" and returns its source node Id and target node id.
+   * @param edgeId
+   */
+  edgeNodesById(edgeId: EdgeId): { sourceId: string | undefined, targetId: string | undefined}{
+    return {
+      sourceId: this._edges.get(edgeId)?.sourceId,
+      targetId: this._edges.get(edgeId)?.targetId
+    }
+  }
+
+  /**
    * get a map of all <nodeId, node> in the graph.
    */
   get nodes(): Map<NodeId, N>{

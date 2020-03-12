@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+## [5.2.0] - 2020-03-12
+
+### New
+* Added edgeNodesById(edgeId:string) that allows sending an edgeId of the format "a->b" and returns { sourceId: string | undefined, targetId: string | undefined}
+
+
 ## [5.1.0] - 2020-03-10
 
 ### New

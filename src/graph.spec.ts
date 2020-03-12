@@ -74,6 +74,12 @@ describe('graphTester', () => {
             expect(g.hasEdge("c", "d")).to.be.true;
         })
 
+        it('should return edge source and target Ids by edgeId', () => {
+            const { sourceId, targetId } = g.edgeNodesById('a->b');
+            expect(sourceId).to.equal('a');
+            expect(targetId).to.equal('b');
+        })
+
         it('should return all graph nodes as a map', () => {
             const keys = [...g.nodes.keys()];
             expect(keys).to.deep.equal([ 'a', 'b', 'c', 'd', 'e', 'f', 'g' ]);
