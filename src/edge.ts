@@ -38,14 +38,14 @@ export class GraphEdge<E> {
     return attrStr;
   }
 
-  static fromObject(obj:{ sourceId: string, targetId: string, edge: any }) {
+  static fromObject(obj:{ sourceId: string, targetId: string, edge: any }, parseEdge: (data: any)=>any) {
     if(!obj.hasOwnProperty('sourceId')){
       throw Error('missing source id')
     }
     if(!obj.hasOwnProperty('targetId')){
       throw Error('missing target id')
     }
-    return {sourceId: obj.sourceId, targetId: obj.targetId, edge: obj.edge};
+    return {sourceId: obj.sourceId, targetId: obj.targetId, edge: parseEdge(obj.edge)};
   }
 
   static edgeId(sourceId: NodeId, targetId: NodeId): EdgeId {
@@ -63,4 +63,15 @@ export class GraphEdge<E> {
   get nodes() {
     return [this.sourceId, this.targetId];
   }
+}
+
+export function genericParseEdge(edge: any){
+  if ((Object.keys(edge).length === 0 && edge.constructor === Object) || typeof(edge) !== 'object'){
+    return edge
+  }
+  return JSON.parse(edge);
+}
+
+export function genericEdgeToJson(edge: any){
+  return edge;
 }

@@ -83,11 +83,22 @@ export class GraphNode<N> {
     return attrStr;
   }
 
-  static fromObject(obj:{ id: string, node: any }) {
+  static fromObject(obj:{ id: string, node: any }, parseNode: (data: any)=>any) {
     if(!obj.hasOwnProperty('id')){
       throw Error('missing object id')
     }
-    return {id: obj.id, node: obj.node};
+    return {id: obj.id, node: parseNode(obj.node)};
   }
 
+}
+
+export function genericParseNode(node: any){
+  if ((Object.keys(node).length === 0 && node.constructor === Object) || typeof(node) !== 'object'){
+    return node
+  }
+  return JSON.parse(node);
+}
+
+export function genericNodeToJson(node: any){
+  return node;
 }

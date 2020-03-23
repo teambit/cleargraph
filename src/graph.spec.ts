@@ -233,6 +233,12 @@ describe('graphTester', () => {
         //     console.log(res)
         // })
 
+        it('should convert graph to json object', () => {
+            const res = g.toJson();
+            expect(res.nodes.length).to.equal(7);
+            expect(res.edges.length).to.equal(7);
+        })
+
         it('should build graph from JSON', () => {
             const json = {
                 "nodes": [

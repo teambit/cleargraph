@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+## [5.3.0] - 2020-03-23
+
+### New
+* Added g.toJson() that returns the graph as a JSON object. User can define on N and E a specific toJson() method. If not defined, the N and E objects will be used as they are.
+* Added optional parameters to g.parse(): parseNode() and parseEdge() which allows users to define their own parse functions to the generic Node and Edge
+
+
 ## [5.2.0] - 2020-03-12
 
 ### New

@@ -3,6 +3,8 @@ import { GraphEdge, EdgeId } from './index';
 import { CyclicError, NodeDoesntExist } from './index'
 import _ from 'lodash';
 import { tarjan } from './algorithms';
+import { genericParseNode, genericNodeToJson } from './node';
+import { genericParseEdge, genericEdgeToJson } from './edge';
 
 /**
  * Graph abstractly represents a graph with arbitrary objects
@@ -723,12 +725,19 @@ export class Graph<N , E> {
         return paths;
   }
 
+  /***
+   * graph to JSON object
+   */
+  toJson(graph?: Graph<N, E>){
+    return graph? this._toJson(graph, 'object') :this. _toJson(this, 'object');
+  }
+
   /**
-   * stringify the graph to a JSON.
+   * stringify the graph to a JSON string
    * @param graph
    */
   stringify(graph?: Graph<N, E>): string {
-    return graph? this._toJson(graph) :this. _toJson(this);
+    return graph? this._toJson(graph, 'string') :this. _toJson(this, 'string');
   } 
 
   /**
@@ -739,29 +748,53 @@ export class Graph<N , E> {
    *   edges: {sourceId: string, targetId: string, edge:E}[]
    * }
    */
-  static parse(json: string){
-    return this._fromJson(json);
+  static parse(json: string, parseNode: (data: any)=>any = genericParseNode, parseEdge: (data: any)=>any = genericParseEdge){
+    return this._fromJson(json, parseNode, parseEdge);
   }
 
-  _toJson(graph: Graph<any, any>){
-    let nodeArray: {id: string, node: string}[]= [];
+  _toJson(graph: Graph<any, any>, returnType: 'object' | 'string'): any{
+    let nodeArray: {id: string, node: string | object}[]= [];
     for (let [nodeId, nodeData] of graph.nodes.entries()) {
       const graphNode = graph._node(nodeId);
       if (!! graphNode){
+        let convertedNode: string | object;
+        if (returnType === 'object'){
+          if (!!graphNode.attr['toJson'] && typeof graphNode.attr['toJson'] === 'function'){
+            convertedNode = graphNode.attr.toJson();
+          }
+          else {
+            convertedNode = genericNodeToJson(graphNode.attr)
+          }
+        }
+        else{
+          convertedNode = graphNode.stringify()
+        }
         nodeArray.push({
           id: nodeId,
-          node: graphNode.stringify()
+          node: convertedNode
         });
       }
     }
-    let edgeArray: {sourceId: string, targetId: string, edge: string}[] = [];
+    let edgeArray: {sourceId: string, targetId: string, edge: string | object}[] = [];
     for (let [edgeId, edgeData] of graph.edges.entries()) {
       const graphEdge = graph._edgeById(edgeId);
       if (!! graphEdge){
+        let convertedEdge: string | object;
+        if (returnType === 'object'){
+          if (!!graphEdge.attr['toJson'] && typeof graphEdge.attr['toJson'] === 'function'){
+            convertedEdge = graphEdge.attr.toJson();
+          }
+          else {
+            convertedEdge = genericNodeToJson(graphEdge.attr)
+          }
+        }
+        else{
+          convertedEdge = graphEdge.stringify()
+        }
         edgeArray.push ({
           sourceId: graphEdge.sourceId,
           targetId: graphEdge.targetId,
-          edge: graphEdge.stringify()
+          edge: convertedEdge
         });
       }
     }
@@ -769,7 +802,7 @@ export class Graph<N , E> {
         nodes: nodeArray,
         edges: edgeArray
       };
-    return JSON.stringify(json);
+      return returnType === 'object'? json : JSON.stringify(json);
 }
 
   /**
@@ -780,19 +813,19 @@ export class Graph<N , E> {
   *   edges: {sourceId: string, targetId: string, edge:E}[]
   * }
   */
-  static _fromJson(json: string){
+  static _fromJson(json: string, parseNode: (data: any)=>any, parseEdge: (data: any)=>any){
     const obj = JSON.parse(json);
     let graph = new Graph();
     if (!obj.hasOwnProperty('nodes') || !obj.hasOwnProperty('edges')){
       throw Error('missing properties on JSON. Should contain nodes: {id: string, node: N}[], and edges: {sourceId: string, targetId: string, edge:E}[]');
     }
     obj.nodes.forEach(nodeObj => {
-      const res = GraphNode.fromObject(nodeObj);
+      const res = GraphNode.fromObject(nodeObj, parseNode);
       graph.setNode(res.id, res.node);
 
     });
     obj.edges.forEach(edgeObj => {
-      const res = GraphEdge.fromObject(edgeObj);
+      const res = GraphEdge.fromObject(edgeObj, parseEdge);
       graph.setEdge(res.sourceId, res.targetId, res.edge);
 
     });
