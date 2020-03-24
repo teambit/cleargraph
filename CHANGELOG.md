@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+## [5.4.0] - 2020-03-24
+
+### New
+* g.parse() can now accept json param as string or object.
+
 ## [5.3.0] - 2020-03-23
 
 ### New

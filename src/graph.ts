@@ -748,7 +748,7 @@ export class Graph<N , E> {
    *   edges: {sourceId: string, targetId: string, edge:E}[]
    * }
    */
-  static parse(json: string, parseNode: (data: any)=>any = genericParseNode, parseEdge: (data: any)=>any = genericParseEdge){
+  static parse(json: string | object, parseNode: (data: any)=>any = genericParseNode, parseEdge: (data: any)=>any = genericParseEdge){
     return this._fromJson(json, parseNode, parseEdge);
   }
 
@@ -813,8 +813,8 @@ export class Graph<N , E> {
   *   edges: {sourceId: string, targetId: string, edge:E}[]
   * }
   */
-  static _fromJson(json: string, parseNode: (data: any)=>any, parseEdge: (data: any)=>any){
-    const obj = JSON.parse(json);
+  static _fromJson(json: string | object, parseNode: (data: any)=>any, parseEdge: (data: any)=>any){
+    const obj = typeof(json) === 'string'? JSON.parse(json) : json;
     let graph = new Graph();
     if (!obj.hasOwnProperty('nodes') || !obj.hasOwnProperty('edges')){
       throw Error('missing properties on JSON. Should contain nodes: {id: string, node: N}[], and edges: {sourceId: string, targetId: string, edge:E}[]');
