@@ -20,7 +20,8 @@ export type RawEdge<E> = {
  * @param attr The attribute associated with the edge
  */
 export class GraphEdge<E> {
-  constructor(readonly sourceId: NodeId, readonly targetId: NodeId, readonly attr: E) {
+  attr: E;
+  constructor(readonly sourceId: NodeId, readonly targetId: NodeId, attr: E) {
     this.sourceId = sourceId;
     this.targetId = targetId;
     this.attr = attr;

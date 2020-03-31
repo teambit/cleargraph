@@ -74,9 +74,15 @@ export class Graph<N , E> {
    * @param id string
    * @param node a node of generic data type N
    */
-  setNode(id: string, node: N): Graph<N, E> {
-    let graphNode = new GraphNode(id, node)
-    this._nodes.set(id, graphNode);
+  setNode(id: string, node: N, overrideExisting=true): Graph<N, E> {
+    if (!this.hasNode(id)){
+      let graphNode = new GraphNode(id, node)
+      this._nodes.set(id, graphNode);
+    }
+    else if(overrideExisting){
+      let existingNode = this._node(id);
+      if (existingNode) { existingNode.attr = node }
+    }
     return this;
   }
 
@@ -86,7 +92,15 @@ export class Graph<N , E> {
    * @param targetId the id of the target node
    * @param edge an edge of the generic data type E
    */
-  setEdge(sourceId: string, targetId: string, edge: E): Graph<N, E> {
+  setEdge(sourceId: string, targetId: string, edge: E, overrideExisting=true): Graph<N, E> {
+    if (this.hasEdge(sourceId, targetId)){
+      if (overrideExisting){
+        let existingEdge = this._edge(sourceId, targetId);
+        if(existingEdge) {existingEdge.attr = edge};
+        return this;
+      }
+      else { return this }
+    }
     const id = GraphEdge.edgeId(sourceId, targetId);
     let graphEdge = new GraphEdge(sourceId, targetId, edge)
     this._edges.set(id, graphEdge);
@@ -115,8 +129,16 @@ export class Graph<N , E> {
    * set multiple nodes on the graph.
    * @param nodes an array of objects {id, node}
    */
-  setNodes(nodes: {id: string, node: N}[]): Graph<N, E>  {
-    nodes.forEach(elem => this.setNode(elem.id, elem.node));
+  setNodes(nodes: {id: string, node: N}[], overrideExisting = true): Graph<N, E>  {
+    nodes.forEach(elem => {
+      if (!this.hasNode(elem.id)){
+        this.setNode(elem.id, elem.node)
+      }
+      else if(overrideExisting){
+        let existingNode = this._node(elem.id);
+        if (existingNode) { existingNode.attr = elem.node }
+      }
+    });
     return this;
   }
 
@@ -124,8 +146,16 @@ export class Graph<N , E> {
    * set multiple edges on the graph.
    * @param edges an array of objects {sourceId, targetId, edge}
    */
-  setEdges(edges: {sourceId: string, targetId: string, edge:E}[]): Graph<N, E> {
-    edges.forEach(elem => this.setEdge(elem.sourceId, elem.targetId, elem.edge));
+  setEdges(edges: {sourceId: string, targetId: string, edge:E}[], overrideExisting = true): Graph<N, E> {
+    edges.forEach(elem => {
+      if (!this.hasEdge(elem.sourceId, elem.targetId)){
+        this.setEdge(elem.sourceId, elem.targetId, elem.edge)
+      }
+      else if(overrideExisting){
+        let existingEdge = this._edge(elem.sourceId, elem.targetId);
+        if (existingEdge) { existingEdge.attr = elem.edge }
+      }
+    });
     return this;
   }
 

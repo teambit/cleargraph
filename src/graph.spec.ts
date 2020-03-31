@@ -80,6 +80,30 @@ describe('graphTester', () => {
             expect(targetId).to.equal('b');
         })
 
+        it('should override existing node with same id', () => {
+            const newNodes = [{id: 'c', node: new NodeData('c', 'newNode', '1.0.0')}];
+            expect(g.setNodes(newNodes).node('c')?.name).to.equal('newNode');
+            g.setNode('c', new NodeData('c', 'comp3', '1.0.0'));
+        })
+
+        it('should override existing edge with same source, target ids', () => {
+            const newEdges = [{sourceId: 'a', targetId: 'b', edge: new EdgeData('dev', 3)}];
+            expect(g.setEdges(newEdges).edge('a', 'b')?.dep).to.equal('dev');
+            g.setEdge('a', 'b', new EdgeData('peer', 3));
+        })
+
+        it('should not override existing node with same id', () => {
+            const newNodes = [{id: 'c', node: new NodeData('c', 'newNode', '1.0.0')}];
+            expect(g.setNodes(newNodes, false).node('c')?.name).to.equal('comp3');
+            g.setNode('c', new NodeData('c', 'comp3', '1.0.0'));
+        })
+
+        it('should not override existing edge with same source, target ids', () => {
+            const newEdges = [{sourceId: 'a', targetId: 'b', edge: new EdgeData('dev', 3)}];
+            expect(g.setEdges(newEdges, false).edge('a', 'b')?.dep).to.equal('peer');
+            g.setEdge('a', 'b', new EdgeData('peer', 3));
+        })
+
         it('should return all graph nodes as a map', () => {
             const keys = [...g.nodes.keys()];
             expect(keys).to.deep.equal([ 'a', 'b', 'c', 'd', 'e', 'f', 'g' ]);
