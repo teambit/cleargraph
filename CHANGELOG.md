@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+## [5.5.0] - 2020-03-31
+
+### New
+* added overrideExisting flag (default true) to setNode(), setNodes(), setEdge(), setEdges()
+
 ## [5.4.0] - 2020-03-24
 
 ### New
