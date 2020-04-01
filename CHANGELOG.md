@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+## [5.6.0] - 2020-04-01
+
+### New
+* successors and predecessors subgraph methods refactored and support multiple entry points.
+
 ## [5.5.0] - 2020-03-31
 
 ### New
