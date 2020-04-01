@@ -179,20 +179,68 @@ describe('graphTester', () => {
 
         it('should find recursive successors sub-graph of a given node', () => {
             const node = g.node('c');
-            const subgraph = !!node? g.successorsSubgraph(node.id) : new Graph()
+            const subgraph = node? g.successorsSubgraph(node.id) : new Graph()
             const nodeKeys = [...subgraph.nodes.keys()];
             const edgeKeys = [...subgraph.edges.keys()];
             expect(nodeKeys).to.deep.equal([ 'c', 'd', 'f', 'e' ]);
             expect(edgeKeys).to.deep.equal([ 'c->d', 'd->f', 'c->e', 'e->d' ]);
         })
 
+        it('should find recursive successors sub-graph of two nodes where one is a successor of the other', () => {
+            const node1 = g.node('a');
+            const node2 = g.node('c')
+            const subgraph = node1 && node2? g.successorsSubgraph([node1.id, node2.id]) : new Graph();
+            const nodeKeys = [...subgraph.nodes.keys()];
+            const edgeKeys = [...subgraph.edges.keys()];
+            expect(nodeKeys).to.deep.equal([ 'a', 'b', 'c', 'd', 'f', 'e' ]);
+            expect(edgeKeys).to.deep.equal([ 'a->b', 'a->c', 'c->d', 'd->f', 'c->e', 'e->d' ]);
+        })
+
+        it('should find recursive successors sub-graph of two nodes where one is *not* a successor of the other', () => {
+            g.setNode('h', new NodeData('h', 'comp22', '1.0.0'));
+            g.setEdge('b', 'h', new EdgeData('peer', 1));
+            const node1 = g.node('b');
+            const node2 = g.node('c')
+            const subgraph = node1 && node2? g.successorsSubgraph([node1.id, node2.id]) : new Graph();
+            const nodeKeys = [...subgraph.nodes.keys()];
+            const edgeKeys = [...subgraph.edges.keys()];
+            expect(nodeKeys).to.deep.equal([ "b", "h", "c", "d", "f", "e" ]);
+            expect(edgeKeys).to.deep.equal([ "b->h", "c->d", "d->f", "c->e", "e->d" ]);
+            g.deleteNode('h');
+            g.deleteEdge('b', 'h');
+        })
+
         it('should find recursive predecessors sub-graph of a given node', () => {
             const node = g.node('d');
-            const subgraph = !!node? g.predecessorsSubgraph(node.id) : new Graph()
+            const subgraph = node? g.predecessorsSubgraph(node.id) : new Graph()
             const nodeKeys = [...subgraph.nodes.keys()];
             const edgeKeys = [...subgraph.edges.keys()];
             expect(nodeKeys).to.deep.equal([ 'd', 'c', 'a', 'g', 'e' ]);
             expect(edgeKeys).to.deep.equal(["c->d","a->c","g->a","e->d","c->e"]);
+        })
+
+        it('should find recursive predecessors sub-graph of two nodes where one is a predecessor of the other', () => {
+            const node1 = g.node('d');
+            const node2 = g.node('c')
+            const subgraph = node1 && node2? g.predecessorsSubgraph([node1.id, node2.id]) : new Graph();
+            const nodeKeys = [...subgraph.nodes.keys()];
+            const edgeKeys = [...subgraph.edges.keys()];
+            expect(nodeKeys).to.deep.equal(["d", "c", "a", "g", "e"]);
+            expect(edgeKeys).to.deep.equal(["c->d", "a->c", "g->a", "e->d", "c->e"]);
+        })
+
+        it('should find recursive predecessors sub-graph of two nodes where one is *not* a predecessor of the other', () => {
+            g.setNode('h', new NodeData('h', 'comp22', '1.0.0'));
+            g.setEdge('b', 'h', new EdgeData('peer', 1));
+            const node1 = g.node('d');
+            const node2 = g.node('h')
+            const subgraph = node1 && node2? g.predecessorsSubgraph([node1.id, node2.id]) : new Graph();
+            const nodeKeys = [...subgraph.nodes.keys()];
+            const edgeKeys = [...subgraph.edges.keys()];
+            expect(nodeKeys).to.deep.equal( ["d", "c", "a", "g", "e", "h", "b"]);
+            expect(edgeKeys).to.deep.equal(["c->d", "a->c", "g->a", "e->d", "c->e", "b->h", "a->b"]);
+            g.deleteNode('h');
+            g.deleteEdge('b', 'h');
         })
 
         it('should find recursive successors array of a given node', () => {

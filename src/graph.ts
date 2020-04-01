@@ -472,8 +472,44 @@ export class Graph<N , E> {
    * @param node the source node of the sub-graph required 
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  successorsSubgraph(nodeId: NodeId, filterPredicate: (edge: E) => boolean = returnTrue): Graph<N, E>{
-    let g = new Graph<N,E>();
+  successorsSubgraph(nodeIds: NodeId | NodeId[], filterPredicate: (edge: E) => boolean = returnTrue): Graph<N, E> {
+    return this._buildSubgraphs(nodeIds, filterPredicate, 'successors');
+  }
+
+  _alreadyProcessed(nodeId: NodeId, subgraphs: Graph<N, E>[]): boolean {
+    for (const graph of subgraphs) {
+      if (graph.hasNode(nodeId)){
+        return true;
+      }
+    }
+    return false;
+  }
+
+  _buildSubgraphs(nodeIds: NodeId | NodeId[], filterPredicate: (edge: E) => boolean, order: 'successors' | 'predecessors'){
+    let subgraphs: Graph<N, E>[] = [];
+    if (!Array.isArray(nodeIds)){
+      return this._buildSubgraph(nodeIds, filterPredicate, order);
+    }
+    nodeIds.forEach(nodeId => {
+      if (this._alreadyProcessed(nodeId, subgraphs)){
+        return;
+      }
+      subgraphs.push(this._buildSubgraph(nodeId, filterPredicate, order));
+    });
+    if (subgraphs.length === 1){
+      return subgraphs[0];
+    }
+    let mergedGraphs: Graph<N, E> = new Graph<N, E>();
+    if (subgraphs.length) {
+      mergedGraphs = subgraphs[0].merge(subgraphs)
+    }
+    return mergedGraphs;
+  }
+
+  _buildSubgraph(nodeId: NodeId, 
+                 filterPredicate: (edge: E) => boolean,
+                 order: 'successors' | 'predecessors'){
+    let g = new Graph<N, E>();
     let graphNode = this._node(nodeId);
     if(!graphNode){
       throw new Error('Node does not exist on graph');
@@ -481,10 +517,11 @@ export class Graph<N , E> {
     else{
       g.setNode(nodeId, graphNode.attr);
     }
-    return this._successorsSubgraphUtil(nodeId, g, {}, filterPredicate)
+    return order === 'successors'? this._successorsSubgraphUtil(nodeId, g, {}, filterPredicate) : 
+                                   this._predecessorsSubgraphUtil(nodeId, g, {}, filterPredicate);
   }
 
-  _successorsSubgraphUtil(nodeId: NodeId, successorsGraph: Graph<N,E>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: E) => boolean = returnTrue): Graph<N, E> {
+  _successorsSubgraphUtil(nodeId: NodeId, successorsGraph: Graph<N,E>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: E) => boolean): Graph<N, E> {
     const successors = [...this._successors(nodeId, filterPredicate).keys()] || [];
     if (successors.length > 0 && !visited[nodeId]) {
         successors.forEach((successor:string) => {
@@ -538,16 +575,8 @@ export class Graph<N , E> {
    * @param node the target node of the sub-graph required 
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  predecessorsSubgraph(nodeId: NodeId, filterPredicate: (edge: E) => boolean = returnTrue): Graph<N, E>{
-    let g = new Graph<N,E>();
-    let graphNode = this._node(nodeId);
-    if(!graphNode){
-      throw new Error('Node does not exist on graph');
-    }
-    else{
-      g.setNode(nodeId, graphNode.attr);
-    }
-    return this._predecessorsSubgraphUtil(nodeId, g, {}, filterPredicate);
+  predecessorsSubgraph(nodeIds: NodeId | NodeId[], filterPredicate: (edge: E) => boolean = returnTrue): Graph<N, E>{
+    return this._buildSubgraphs(nodeIds, filterPredicate, 'predecessors');
   }
 
   _predecessorsSubgraphUtil(nodeId: NodeId, predecessorsGraph: Graph<N,E>, visited: { [key: string]: boolean } = {}, filterPredicate: (data: E) => boolean = returnTrue): Graph<N, E> {
