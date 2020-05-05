@@ -5,8 +5,7 @@
   "main": "dist/index.js",
   "dependencies": {
     "graphlib": "^2.1.8",
-    "lodash": "^4.17.15",
-    "typescript": "^3.7.4"
+    "lodash": "^4.17.15"
   },
   "devDependencies": {
     "@types/chai": "^4.2.7",
@@ -16,7 +15,8 @@
     "chai": "^4.2.0",
     "mocha": "^7.0.0",
     "ts-node": "^8.6.2",
-    "typedoc": "^0.16.8"
+    "typedoc": "^0.16.8",
+    "typescript": "^3.8.3"
   },
   "scripts": {
     "build": "tsc -d",
