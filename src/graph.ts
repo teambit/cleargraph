@@ -568,7 +568,37 @@ export class Graph<N , E> {
             });
         }
     return successorsList;
+  }
+
+  successorsLayers(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, order:'fromSource' | 'fromLastLeaf'= 'fromSource'): string[][] | never {
+    let successorsGraph = this.successorsSubgraph(nodeKey, filterPredicate)
+    if(this.isCyclic(successorsGraph)){
+        throw new Error("cyclic dependency")
     }
+    let layers: string[][] = []
+    layers[0]=[nodeKey]
+    let floor = 0
+    let rawLayers = this._successorsLayersUtil([nodeKey], layers, floor, filterPredicate)
+    return arrangeLayers(rawLayers, order)
+  }
+
+  private _successorsLayersUtil(nodeKeys: string[],
+                                 layers: string[][],
+                                 floor: number,
+                                 filterPredicate: (data: E) => boolean = returnTrue){  
+        if (nodeKeys.length > 0) {
+            let nextFloor = floor + 1
+            layers.push([])
+            layers[floor].forEach((successor:string) => {
+              const successors = [...this.successors(successor, filterPredicate).keys()];
+              layers[nextFloor] = layers[nextFloor].concat(successors);
+            });
+            return this._successorsLayersUtil(layers[nextFloor], layers, nextFloor, filterPredicate)
+        }
+        return layers;
+  }
+
+
 
   /**
    * return a sub-graph of all the nodes and edges that are recursively predecessors (point to) of the given node.
@@ -627,6 +657,35 @@ export class Graph<N , E> {
         }
     return predecessorsList;
     }
+
+    predecessorsLayers(nodeKey: string, filterPredicate: (data: E) => boolean = returnTrue, order:'fromSource' | 'fromLastLeaf'= 'fromSource'): string[][] | never {
+      let successorsGraph = this.predecessorsSubgraph(nodeKey, filterPredicate) // first getting as a graph to check if cyclic
+      if(this.isCyclic(successorsGraph)){
+          throw new Error("cyclic sub-graph")
+      }
+      let layers: string[][] = []
+      layers[0]=[nodeKey]
+      let floor = 0
+      let rawLayers = this._predecessorsLayersUtil([nodeKey], layers, floor, filterPredicate)
+      return arrangeLayers(rawLayers, order)
+   }
+
+   private _predecessorsLayersUtil(nodeKeys: string[],
+                                 layers: string[][],
+                                 floor: number,
+                                 filterPredicate: (data: E) => boolean = returnTrue){  
+        if (nodeKeys.length > 0) {
+            let nextFloor = floor + 1
+            layers.push([])
+            layers[floor].forEach((predecessor:string) => {
+              const predecessors = [...this.predecessors(predecessor, filterPredicate).keys()];
+              layers[nextFloor] = layers[nextFloor].concat(predecessors);
+            });
+            return this._predecessorsLayersUtil(layers[nextFloor], layers, nextFloor, filterPredicate)
+        }
+        return layers;
+    }
+
 
   /**
    * A topological sort of the graph
@@ -703,9 +762,9 @@ export class Graph<N , E> {
     }
   }
 
-  isCyclic() {
+  isCyclic(graph: Graph<N, E> = this) {
     try {
-      this.toposort();
+      graph.toposort();
     } catch (e) {
       if (e instanceof CyclicError) {
         return true;
@@ -715,8 +774,8 @@ export class Graph<N , E> {
     return false;
   }
 
-  findCycles(){
-    return findCycles(this);
+  findCycles(graph: Graph<N, E> = this){
+    return findCycles(graph);
   }
 
   /**
@@ -926,4 +985,24 @@ function findCycles(g) {
     // @ts-ignore
     return cmpt.length > 1 || (cmpt.length === 1 && g.hasEdge(cmpt[0], cmpt[0]));
   });
+}
+
+function arrangeLayers(layers:string[][], order: 'fromSource' | 'fromLastLeaf'){
+  let finalLayers: string[][] = []
+  let seenNodes:string[] = []
+  layers = layers.reverse()
+  let i = 0
+  layers.forEach(layer => {
+      if(layer.length > 0){
+          finalLayers.push([])
+          layer.forEach(node => {
+              if(seenNodes.indexOf(node) == -1){ //if node not seen
+                  seenNodes.push(node)
+                  finalLayers[i].push(node)
+              }
+          })
+      i++
+  }
+  });
+ return order === 'fromSource' ? finalLayers.reverse() : finalLayers
 }

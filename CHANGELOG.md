@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+## [5.7.0] - 2020-05-05
+
+### New
+* Added successorsLayers and predecessorsLayers.
+
 ## [5.6.0] - 2020-04-01
 
 ### New

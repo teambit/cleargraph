@@ -255,6 +255,54 @@ describe('graphTester', () => {
             expect(arr).to.deep.equal([ 'c', 'a', 'g', 'e' ]);
         })
 
+        it('should return all node successors recursively as layers - version 1', () => {
+            expect(g.successorsLayers('a')).to.deep.equal([["a"],["b","c"],["e"],["d"],["f"]])
+        })
+    
+        it('should return all node successors recursively as layers - version 2', () => {
+            let a = new Graph<NodeData, EdgeData>()
+            a.setNode('a', new NodeData('a', 'comp1', '1.0.0'));
+            a.setNode('b', new NodeData('b', 'comp2', '2.0.0'));
+            a.setNode('c', new NodeData('c', 'comp3', '1.0.1'));
+            a.setNode('d', new NodeData('d', 'comp4', '15.0.0'));
+            a.setNode('e', new NodeData('e', 'comp5', '3.0.0'));
+            a.setNode('f', new NodeData('f', 'comp6', '2.0.0'));
+            a.setNode('g', new NodeData('g', 'comp7', '2.0.0'));
+            a.setNode('h', new NodeData('h', 'comp8', '2.0.0'));
+
+            a.setEdge('a','b', new EdgeData('peer', 3));
+            a.setEdge('a','g', new EdgeData('peer', 3));
+            a.setEdge('b','c', new EdgeData('dev', 3));
+            a.setEdge('b','f', new EdgeData('regular', 2));
+            a.setEdge('c','e', new EdgeData('regular', 3));
+            a.setEdge('c','d', new EdgeData('peer', 3));
+            a.setEdge('d','f', new EdgeData('dev', 3));
+            a.setEdge('f','g', new EdgeData('dev', 3));
+            a.setEdge('e','h', new EdgeData('dev', 1));
+            expect(a.successorsLayers('a')).to.deep.equal([["a"],["b"],["c"],["e","d"],["h","f"],["g"]])
+        })
+    
+        it('should return all node successors recursively as layers with filter function', () => {
+            expect(g.successorsLayers('a', edgeFilterByDevDep)).to.deep.equal([ ['a'], ['c'] ])
+        })
+
+        it('should return all node predecessors recursively as layers - version 1', () => {
+            expect(g.predecessorsLayers('d')).to.deep.equal([["d"],["e"],["c"],["a"],["g"]])
+        })
+    
+        it('should throw error for circular dependencies for successors as layers', () => {
+            g.setEdge('f','a', new EdgeData('regular', 3));
+            try{
+                g.successorsLayers('a')
+            } catch(e){
+                expect(e.message).to.equal('cyclic dependency')
+                g.deleteEdge('f','a');
+                return
+            }
+            g.deleteEdge('f','a');
+            expect.fail('should have thrown exception')
+        })
+
         it('should perform topological sort on the graph', () => {
             const res = g.toposort();
             const ids = res.map(elem => elem? elem.id: '');
@@ -351,3 +399,27 @@ describe('graphTester', () => {
         })
     })
 })
+
+function nodeFilterPredicateVersion(nodeData: NodeData){
+    return (nodeData.version === '2.0.0')
+}
+
+function nodeFilterPredicateComp(nodeData: NodeData){
+    return (nodeData.id === 'comp2')
+}
+
+function edgeFilterByRegularDep(edgeData: EdgeData){
+    return (edgeData.dep === 'regular')
+}
+
+function edgeFilterByDevDep(edgeData: EdgeData){
+    return (edgeData.dep === 'dev')
+}
+
+function edgeFilterByPeerDep(edgeData: EdgeData){
+    return (edgeData.dep === 'peer')
+}
+
+function edgeFilterByPeerOrDevDep(edgeData: EdgeData){
+    return (edgeData.dep === 'peer' || edgeData.dep === 'dev')
+}
