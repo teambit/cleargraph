@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+## [5.7.0] - 2020-11-19
+
+### New
+* Returning types as `this` instead of `Graph<N, E>` to improve support for inheritence.
+* Added graphNodes and graphEdges getters that return full nodes/edges objects.
+
 ## [5.7.0] - 2020-05-05
 
 ### New
