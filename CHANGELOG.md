@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
-## [5.7.0] - 2020-11-19
+## [6.0.0] - 2020-12-03
+
+### New
+* All methods that used to return N now return Node<N>
+* All methods that used to return E now return Edge<E>
+* All filter predicates that used to get E as param now get Edge<E>
+
+## [5.8.0] - 2020-11-19
 
 ### New
 * Returning types as `this` instead of `Graph<N, E>` to improve support for inheritence.
