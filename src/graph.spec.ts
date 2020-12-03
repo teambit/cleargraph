@@ -1,4 +1,4 @@
-import { Graph, CyclicError } from "./index"
+import { Graph, CyclicError, GraphNode, GraphEdge } from "./index"
 import { expect } from "chai";
 
 
@@ -67,7 +67,10 @@ describe('graphTester', () => {
         })
 
         it('should return edge', () => {
-            expect(g.edge('a','b')).to.deep.equal({ dep: 'peer', semDist: 3});
+            expect(g.edge('a','b')).to.deep.equal({
+                sourceId:"a",
+                targetId:"b",
+                attr:{"dep":"peer","semDist":3}});
         })
 
         it('should return undefined for missing edge', () => {
@@ -92,7 +95,8 @@ describe('graphTester', () => {
 
         it('should override existing edge with same source, target ids', () => {
             const newEdges = [{sourceId: 'a', targetId: 'b', edge: new EdgeData('dev', 3)}];
-            expect(g.setEdges(newEdges).edge('a', 'b')?.dep).to.equal('dev');
+            g.setEdges(newEdges);
+            expect(g.edge('a', 'b')?.attr.dep).to.equal('dev');
             g.setEdge('a', 'b', new EdgeData('peer', 3));
         })
 
@@ -104,7 +108,8 @@ describe('graphTester', () => {
 
         it('should not override existing edge with same source, target ids', () => {
             const newEdges = [{sourceId: 'a', targetId: 'b', edge: new EdgeData('dev', 3)}];
-            expect(g.setEdges(newEdges, false).edge('a', 'b')?.dep).to.equal('peer');
+            g.setEdges(newEdges, false);
+            expect(g.edge('a', 'b')?.attr.dep).to.equal('peer');
             g.setEdge('a', 'b', new EdgeData('peer', 3));
         })
 
@@ -404,26 +409,26 @@ describe('graphTester', () => {
     })
 })
 
-function nodeFilterPredicateVersion(nodeData: NodeData){
-    return (nodeData.version === '2.0.0')
+function nodeFilterPredicateVersion(nodeData: GraphNode<NodeData>){
+    return (nodeData.attr.version === '2.0.0')
 }
 
-function nodeFilterPredicateComp(nodeData: NodeData){
-    return (nodeData.id === 'comp2')
+function nodeFilterPredicateComp(nodeData: GraphNode<NodeData>){
+    return (nodeData.attr.id === 'comp2')
 }
 
-function edgeFilterByRegularDep(edgeData: EdgeData){
-    return (edgeData.dep === 'regular')
+function edgeFilterByRegularDep(edgeData: GraphEdge<EdgeData>){
+    return (edgeData.attr.dep === 'regular')
 }
 
-function edgeFilterByDevDep(edgeData: EdgeData){
-    return (edgeData.dep === 'dev')
+function edgeFilterByDevDep(edgeData: GraphEdge<EdgeData>){
+    return (edgeData.attr.dep === 'dev')
 }
 
-function edgeFilterByPeerDep(edgeData: EdgeData){
-    return (edgeData.dep === 'peer')
+function edgeFilterByPeerDep(edgeData: GraphEdge<EdgeData>){
+    return (edgeData.attr.dep === 'peer')
 }
 
-function edgeFilterByPeerOrDevDep(edgeData: EdgeData){
-    return (edgeData.dep === 'peer' || edgeData.dep === 'dev')
+function edgeFilterByPeerOrDevDep(edgeData: GraphEdge<EdgeData>){
+    return (edgeData.attr.dep === 'peer' || edgeData.attr.dep === 'dev')
 }
