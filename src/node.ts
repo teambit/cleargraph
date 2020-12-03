@@ -11,7 +11,7 @@ export class GraphNode<N> {
   _inEdges: EdgeId[];
   _outEdges: EdgeId[];
   constructor(
-    id: NodeId, 
+    id: NodeId,
     attr: N,
     inEdges?: EdgeId[],
     outEdges?: EdgeId[]

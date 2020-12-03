@@ -55,7 +55,11 @@ describe('graphTester', () => {
     
     describe('basicTester', () => {
         it('should return node', () => {
-            expect(g.node("b")).to.deep.equal({ id: 'b', name: 'comp2', version: '2.0.0'});
+            expect(g.node("b")).to.deep.equal({
+                id:"b",
+                attr:{"id":"b","name":"comp2","version":"2.0.0"},
+                _inEdges:["a->b"],
+                _outEdges:[]});
         })
 
         it('should return undefined for missing node', () => {
@@ -82,7 +86,7 @@ describe('graphTester', () => {
 
         it('should override existing node with same id', () => {
             const newNodes = [{id: 'c', node: new NodeData('c', 'newNode', '1.0.0')}];
-            expect(g.setNodes(newNodes).node('c')?.name).to.equal('newNode');
+            expect(g.setNodes(newNodes).node('c')?.attr.name).to.equal('newNode');
             g.setNode('c', new NodeData('c', 'comp3', '1.0.0'));
         })
 
@@ -94,7 +98,7 @@ describe('graphTester', () => {
 
         it('should not override existing node with same id', () => {
             const newNodes = [{id: 'c', node: new NodeData('c', 'newNode', '1.0.0')}];
-            expect(g.setNodes(newNodes, false).node('c')?.name).to.equal('comp3');
+            expect(g.setNodes(newNodes, false).node('c')?.attr.name).to.equal('comp3');
             g.setNode('c', new NodeData('c', 'comp3', '1.0.0'));
         })
 

@@ -27,6 +27,10 @@ export class GraphEdge<E> {
     this.attr = attr;
   }
 
+  get id(){
+    return GraphEdge.edgeId(this.sourceId, this.targetId);
+  }
+
   stringify() {
     let attrStr: string = '';
     if (!!this.attr['stringify'] && typeof this.attr['stringify'] === 'function'){
