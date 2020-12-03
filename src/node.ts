@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 export type NodeId = string;
 
-export class GraphNode<N> {
+export class Node<N> {
   id: NodeId;
   attr: N;
   _inEdges: EdgeId[];
@@ -66,7 +66,7 @@ export class GraphNode<N> {
     return (this._inEdges.length > 0 && this._outEdges.length === 0)
   }
 
-  equals(node: GraphNode<N>) {
+  equals(node: Node<N>) {
     if (this.id !== node.id) return false;
     return isEqual(this.attr, node.attr);
   }

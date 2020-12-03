@@ -1,4 +1,4 @@
-import { Graph, CyclicError, GraphNode, GraphEdge } from "./index"
+import { Graph, CyclicError, Node, Edge } from "./index"
 import { expect } from "chai";
 
 
@@ -409,26 +409,26 @@ describe('graphTester', () => {
     })
 })
 
-function nodeFilterPredicateVersion(nodeData: GraphNode<NodeData>){
+function nodeFilterPredicateVersion(nodeData: Node<NodeData>){
     return (nodeData.attr.version === '2.0.0')
 }
 
-function nodeFilterPredicateComp(nodeData: GraphNode<NodeData>){
+function nodeFilterPredicateComp(nodeData: Node<NodeData>){
     return (nodeData.attr.id === 'comp2')
 }
 
-function edgeFilterByRegularDep(edgeData: GraphEdge<EdgeData>){
+function edgeFilterByRegularDep(edgeData: Edge<EdgeData>){
     return (edgeData.attr.dep === 'regular')
 }
 
-function edgeFilterByDevDep(edgeData: GraphEdge<EdgeData>){
+function edgeFilterByDevDep(edgeData: Edge<EdgeData>){
     return (edgeData.attr.dep === 'dev')
 }
 
-function edgeFilterByPeerDep(edgeData: GraphEdge<EdgeData>){
+function edgeFilterByPeerDep(edgeData: Edge<EdgeData>){
     return (edgeData.attr.dep === 'peer')
 }
 
-function edgeFilterByPeerOrDevDep(edgeData: GraphEdge<EdgeData>){
+function edgeFilterByPeerOrDevDep(edgeData: Edge<EdgeData>){
     return (edgeData.attr.dep === 'peer' || edgeData.attr.dep === 'dev')
 }

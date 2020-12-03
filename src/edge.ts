@@ -19,7 +19,7 @@ export type RawEdge<E> = {
  * @param dstId The vertex id of the target vertex
  * @param attr The attribute associated with the edge
  */
-export class GraphEdge<E> {
+export class Edge<E> {
   attr: E;
   constructor(readonly sourceId: NodeId, readonly targetId: NodeId, attr: E) {
     this.sourceId = sourceId;
@@ -28,7 +28,7 @@ export class GraphEdge<E> {
   }
 
   get id(){
-    return GraphEdge.edgeId(this.sourceId, this.targetId);
+    return Edge.edgeId(this.sourceId, this.targetId);
   }
 
   stringify() {
