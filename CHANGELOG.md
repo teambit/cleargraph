@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog. and this project adheres to Semantic Versioning.
 
+## [7.0.0] - 2020-12-21
+
+### New
+* All methods that used to return a map or nodes or edges now return arrays.
+* There are corresponding methods that still return maps where the method name is suffixed with 'map', as in nodeMap or succesorMap()
+* Added source and target getters for Edge
+* Added return types to toposort() and findCycles()
 ## [6.0.0] - 2020-12-03
 
 ### New
