@@ -21,7 +21,7 @@ function dfs(v) {
     //@ts-ignore
     stack.push(v);
 
-    let successors = [...g.successors(v).keys()];
+    let successors = [...g.successorMap(v).keys()];
     successors.forEach(function(w) {
     if (!_.has(visited, w)) {
         dfs(w);

@@ -382,7 +382,7 @@ export class Graph<N , E> {
    * @param nodeId the id of the source node
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  successors(nodeId: NodeId, filterPredicate: (edge: Edge<E>) => boolean = returnTrue): Map<NodeId, Node<N>>{
+  successorMap(nodeId: NodeId, filterPredicate: (edge: Edge<E>) => boolean = returnTrue): Map<NodeId, Node<N>>{
     return this._successors(nodeId, filterPredicate);
   }
 
@@ -391,7 +391,7 @@ export class Graph<N , E> {
    * @param nodeId the id of the target node
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  predecessors(nodeId: NodeId, filterPredicate: (edge: Edge<E>) => boolean = returnTrue): Map<NodeId, Node<N>>{
+  predecessorMap(nodeId: NodeId, filterPredicate: (edge: Edge<E>) => boolean = returnTrue): Map<NodeId, Node<N>>{
     return this._predecessors(nodeId, filterPredicate);
   }
 
@@ -400,7 +400,7 @@ export class Graph<N , E> {
    * @param nodeId the id of the node
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  neighbors(nodeId: NodeId, filterPredicate: (edge: Edge<E>) => boolean = returnTrue): Map<NodeId, Node<N>>{
+  neighborMap(nodeId: NodeId, filterPredicate: (edge: Edge<E>) => boolean = returnTrue): Map<NodeId, Node<N>>{
     return this._neighbors(nodeId, filterPredicate);
   }
 
@@ -534,7 +534,7 @@ export class Graph<N , E> {
    * @param node the source node of the successor array required 
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  successorsArray(nodeId: NodeId, filterPredicate: (data: Edge<E>) => boolean = returnTrue): Node<N>[]{
+  successors(nodeId: NodeId, filterPredicate: (data: Edge<E>) => boolean = returnTrue): Array<Node<N>>{
     const successorIds = _.uniq(this._successorsArrayUtil(nodeId, [], {}, filterPredicate));
     let successors: Node<N>[] = []
     successorIds.forEach((id: NodeId) => {
@@ -581,7 +581,7 @@ export class Graph<N , E> {
             let nextFloor = floor + 1
             layers.push([])
             layers[floor].forEach((successor:string) => {
-              const successors = [...this.successors(successor, filterPredicate).keys()];
+              const successors = [...this.successorMap(successor, filterPredicate).keys()];
               layers[nextFloor] = layers[nextFloor].concat(successors);
             });
             return this._successorsLayersUtil(layers[nextFloor], layers, nextFloor, filterPredicate)
@@ -620,7 +620,7 @@ export class Graph<N , E> {
    * @param node the source node of the predecessor array required 
    * @param filterPredicate a boolean function that enables traversing the graph only on the edges that return truthy for it
    */
-  predecessorsArray(nodeId: NodeId, filterPredicate: (data: Edge<E>) => boolean = returnTrue): Node<N>[]{
+  predecessors(nodeId: NodeId, filterPredicate: (data: Edge<E>) => boolean = returnTrue): Array<Node<N>>{
     const predecessorIds = _.uniq(this._predecessorsArrayUtil(nodeId, [], {}, filterPredicate));
     let predecessors: Node<N>[] = []
     predecessorIds.forEach((id:NodeId) => {
@@ -667,7 +667,7 @@ export class Graph<N , E> {
             let nextFloor = floor + 1
             layers.push([])
             layers[floor].forEach((predecessor:string) => {
-              const predecessors = [...this.predecessors(predecessor, filterPredicate).keys()];
+              const predecessors = [...this.predecessorMap(predecessor, filterPredicate).keys()];
               layers[nextFloor] = layers[nextFloor].concat(predecessors);
             });
             return this._predecessorsLayersUtil(layers[nextFloor], layers, nextFloor, filterPredicate)
@@ -678,7 +678,7 @@ export class Graph<N , E> {
   /**
    * A topological sort of the graph
    */
-  toposort(reverse:boolean=false): Node<N>[]{
+  toposort(reverse:boolean=false): Array<Node<N>>{
     let nodes = this._toposort().map(nodeId => this.node(nodeId));
     nodes = _.compact(nodes) // remove any undefined entries
     //@ts-ignore
@@ -750,7 +750,7 @@ export class Graph<N , E> {
     }
   }
 
-  isCyclic(graph = this) {
+  isCyclic(graph = this): boolean {
     try {
       graph.toposort();
     } catch (e) {

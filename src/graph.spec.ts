@@ -208,17 +208,17 @@ describe('graphTester', () => {
         })
 
         it('should find immediate successors of a given node', () => {
-            const keys = [...g.successors('c').keys()];
+            const keys = [...g.successorMap('c').keys()];
             expect(keys).to.deep.equal([ 'd', 'e' ]);
         })
 
         it('should find immediate predecessors of a given node', () => {
-            const keys = [...g.predecessors('c').keys()];
+            const keys = [...g.predecessorMap('c').keys()];
             expect(keys).to.deep.equal([ 'a' ]);
         })
 
         it('should find neighbors of a given node', () => {
-            const keys = [...g.neighbors('c').keys()];
+            const keys = [...g.neighborMap('c').keys()];
             expect(keys).to.deep.equal([ 'a', 'd', 'e' ]);
         })
 
@@ -290,13 +290,13 @@ describe('graphTester', () => {
 
         it('should find recursive successors array of a given node', () => {
             const node = g.node('c');
-            const arr = !!node? g.successorsArray(node.id).map(elem => elem.id) : [];
+            const arr = !!node? g.successors(node.id).map(elem => elem.id) : [];
             expect(arr).to.deep.equal([ 'd', 'f', 'e' ]);
         })
 
         it('should find recursive predecessors array of a given node', () => {
             const node = g.node('d');
-            const arr = !!node? g.predecessorsArray(node.id).map(elem => elem.id) : [];
+            const arr = !!node? g.predecessors(node.id).map(elem => elem.id) : [];
             expect(arr).to.deep.equal([ 'c', 'a', 'g', 'e' ]);
         })
 
