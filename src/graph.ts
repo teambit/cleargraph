@@ -185,17 +185,30 @@ export class Graph<N , E> {
   /**
    * get a map of all <nodeId, node> in the graph.
    */
-  get nodes(): Map<NodeId, Node<N>>{
+  get nodeMap(): Map<NodeId, Node<N>>{
     return this._nodes;
   }
 
   /**
    * get all <edgeId, edge> in the graph.
    */
-  get edges(): Map<EdgeId, Edge<E>>{
+  get edgeMap(): Map<EdgeId, Edge<E>>{
     return this._edges;
   }
 
+/**
+   * get an array of all nodes in the graph.
+   */
+  get nodes(): Array<Node<N>>{
+    return [...this._nodes.values()];
+  }
+
+  /**
+   * get an array of all edges in the graph.
+   */
+  get edges(): Array<Edge<E>>{
+    return [...this._edges.values()];
+  }
 
   /**
    * return the number of nodes in the graph.
@@ -214,7 +227,7 @@ export class Graph<N , E> {
   /**
    * return all nodes that have only out edges and no in edges.
    */
-  sources(): Node<N>[]{
+  sources(): Array<Node<N>>{
     let nodesToReturn = [...this._nodes.values()];
     return nodesToReturn.filter(node => node.isSource()).map(elem => elem);
   }
@@ -222,7 +235,7 @@ export class Graph<N , E> {
    /**
     * return all nodes that have only in edges and no out edges.
     */
-   sinks(): Node<N>[]{
+   sinks(): Array<Node<N>>{
     let nodesToReturn = [...this._nodes.values()];
     return nodesToReturn.filter(node => node.isSink()).map(elem => elem);
    }
@@ -266,7 +279,7 @@ export class Graph<N , E> {
    * return a map <EdgeId, Edge> of all inbound edges of the given node.
    * @param nodeId NodeId==string
    */
-  inEdges(nodeId: NodeId): Map<EdgeId, Edge<E>>{
+  inEdgesMap(nodeId: NodeId): Map<EdgeId, Edge<E>>{
     return this._inEdges(nodeId);
   }
 
@@ -274,7 +287,7 @@ export class Graph<N , E> {
    * return a map <EdgeId, Edge> of all outbound edges of the given node.
    * @param nodeId NodeId==string
    */
-  outEdges(nodeId: NodeId): Map<EdgeId, Edge<E>>{
+  outEdgesMap(nodeId: NodeId): Map<EdgeId, Edge<E>>{
     return this._outEdges(nodeId);
   }
 
@@ -282,8 +295,32 @@ export class Graph<N , E> {
    * return a map <EdgeId, Edge> of all inbound and outbound edges of the given node.
    * @param nodeId NodeId==string
    */
-  nodeEdges(nodeId: NodeId): Map<EdgeId, Edge<E>>{
+  nodeEdgesMap(nodeId: NodeId): Map<EdgeId, Edge<E>>{
     return this._nodeEdges(nodeId);
+  }
+
+  /**
+   * return an array of all inbound edges of the given node.
+   * @param nodeId NodeId==string
+   */
+  inEdges(nodeId: NodeId): Array<Edge<E>>{
+    return [...this._inEdges(nodeId).values()];
+  }
+
+  /**
+   * return an array of all outbound edges of the given node.
+   * @param nodeId NodeId==string
+   */
+  outEdges(nodeId: NodeId): Array<Edge<E>>{
+    return [...this._outEdges(nodeId).values()];
+  }
+
+  /**
+   * return an array of all inbound and outbound edges of the given node.
+   * @param nodeId NodeId==string
+   */
+  nodeEdges(nodeId: NodeId): Array<Edge<E>>{
+    return [...this._nodeEdges(nodeId).values()];
   }
 
   /**
@@ -737,14 +774,14 @@ export class Graph<N , E> {
     let mergedGraph: this = this; 
     graphs.forEach(incomingGraph => {
       //iterate on nodes
-      for (let [nodeId, node] of incomingGraph.nodes) {
+      for (let [nodeId, node] of incomingGraph.nodeMap) {
         mergedGraph.setNode(nodeId, node.attr); // override right node data with left (incoming) node data if this node id exists or creates a new node with this id if doesn't exist
       }
       //iterate on edges
-      for (let [edgeId, edge] of incomingGraph.edges) {
+      for (let [edgeId, edge] of incomingGraph.edgeMap) {
         const sourceId = incomingGraph._edges.get(edgeId)?.sourceId;
         const targetId = incomingGraph._edges.get(edgeId)?.targetId
-        if(mergedGraph.edges.has(edgeId) && !!sourceId && !!targetId){
+        if(mergedGraph.edgeMap.has(edgeId) && !!sourceId && !!targetId){
           mergedGraph.setEdge(sourceId, targetId, edge.attr); // override right edge data with left (incoming) edge data if edge id exists
         }
         else {
@@ -823,7 +860,7 @@ export class Graph<N , E> {
 
   _toJson(graph: Graph<any, any>, returnType: 'object' | 'string'): any{
     let nodeArray: {id: string, node: string | object}[]= [];
-    for (let [nodeId, nodeData] of graph.nodes.entries()) {
+    for (let [nodeId, nodeData] of graph.nodeMap.entries()) {
       const graphNode = graph.node(nodeId);
       if (!! graphNode){
         let convertedNode: string | object;
@@ -845,7 +882,7 @@ export class Graph<N , E> {
       }
     }
     let edgeArray: {sourceId: string, targetId: string, edge: string | object}[] = [];
-    for (let [edgeId, edgeData] of graph.edges.entries()) {
+    for (let [edgeId, edgeData] of graph.edgeMap.entries()) {
       const graphEdge = graph._edgeById(edgeId);
       if (!! graphEdge){
         let convertedEdge: string | object;

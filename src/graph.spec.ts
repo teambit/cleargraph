@@ -114,13 +114,25 @@ describe('graphTester', () => {
         })
 
         it('should return all graph nodes as a map', () => {
-            const keys = [...g.nodes.keys()];
+            const keys = [...g.nodeMap.keys()];
             expect(keys).to.deep.equal([ 'a', 'b', 'c', 'd', 'e', 'f', 'g' ]);
         })
 
         it('should return all graph edges as a map', () => {
-            const keys = [...g.edges.keys()];
+            const keys = [...g.edgeMap.keys()];
             expect(keys).to.deep.equal(["a->b","a->c","c->d","c->e","d->f","e->d","g->a"]);
+        })
+
+        it('should return all graph nodes as an array', () => {
+            const nodes = g.nodes;
+            expect(nodes.length).to.equal(7);
+            expect(nodes[0]).to.be.an('object');
+        })
+
+        it('should return all graph edges as an array', () => {
+            const edges = g.edges;
+            expect(edges.length).to.equal(7);
+            expect(edges[0]).to.be.an('object');
         })
 
         it('should return the correct node count', () => {
@@ -156,19 +168,43 @@ describe('graphTester', () => {
             expect(g.edgeCount()).to.equal(7);
         })        
 
-        it('should find all in edges of a given node', () => {
-            const keys = [...g.inEdges('d').keys()];
+        it('should return a map of all in edges of a given node', () => {
+            const keys = [...g.inEdgesMap('d').keys()];
             expect(keys).to.deep.equal([ 'c->d', 'e->d' ]);
         })
 
-        it('should find all out edges of a given node', () => {
-            const keys = [...g.outEdges('a').keys()];
+        it('should return a map of all out edges of a given node', () => {
+            const keys = [...g.outEdgesMap('a').keys()];
             expect(keys).to.deep.equal([ 'a->b', 'a->c' ]);
         })
 
-        it('should find all node edges of a given node', () => {
-            const keys = [...g.nodeEdges('a').keys()];
+        it('should return a map of all node edges of a given node', () => {
+            const keys = [...g.nodeEdgesMap('a').keys()];
             expect(keys).to.deep.equal([ 'g->a', 'a->b', 'a->c' ]);
+        })
+
+        it('should return an array of all in edges of a given node', () => {
+            const inEdges = g.inEdges('d');
+            expect(inEdges.length).to.equal(2);
+            expect(inEdges[0]).to.be.an('object');
+            expect(inEdges[0].id).to.equal('c->d');
+            // expect(inEdges).to.deep.equal([ 'c->d', 'e->d' ]);
+        })
+
+        it('should return an array of all out edges of a given node', () => {
+            const outEdges = g.outEdges('a');
+            expect(outEdges.length).to.equal(2);
+            expect(outEdges[0]).to.be.an('object');
+            expect(outEdges[0].id).to.equal('a->b');
+            // expect(keys).to.deep.equal([ 'a->b', 'a->c' ]);
+        })
+
+        it('should return an array of all node edges of a given node', () => {
+            const nodeEdges = g.nodeEdges('a');
+            expect(nodeEdges.length).to.equal(3);
+            expect(nodeEdges[0]).to.be.an('object');
+            expect(nodeEdges[0].id).to.equal('g->a');
+            // expect(nodeEdges).to.deep.equal([ 'g->a', 'a->b', 'a->c' ]);
         })
 
         it('should find immediate successors of a given node', () => {
@@ -189,8 +225,8 @@ describe('graphTester', () => {
         it('should find recursive successors sub-graph of a given node', () => {
             const node = g.node('c');
             const subgraph = node? g.successorsSubgraph(node.id) : new Graph()
-            const nodeKeys = [...subgraph.nodes.keys()];
-            const edgeKeys = [...subgraph.edges.keys()];
+            const nodeKeys = [...subgraph.nodeMap.keys()];
+            const edgeKeys = [...subgraph.edgeMap.keys()];
             expect(nodeKeys).to.deep.equal([ 'c', 'd', 'f', 'e' ]);
             expect(edgeKeys).to.deep.equal([ 'c->d', 'd->f', 'c->e', 'e->d' ]);
         })
@@ -199,8 +235,8 @@ describe('graphTester', () => {
             const node1 = g.node('a');
             const node2 = g.node('c')
             const subgraph = node1 && node2? g.successorsSubgraph([node1.id, node2.id]) : new Graph();
-            const nodeKeys = [...subgraph.nodes.keys()];
-            const edgeKeys = [...subgraph.edges.keys()];
+            const nodeKeys = [...subgraph.nodeMap.keys()];
+            const edgeKeys = [...subgraph.edgeMap.keys()];
             expect(nodeKeys).to.deep.equal([ 'a', 'b', 'c', 'd', 'f', 'e' ]);
             expect(edgeKeys).to.deep.equal([ 'a->b', 'a->c', 'c->d', 'd->f', 'c->e', 'e->d' ]);
         })
@@ -211,8 +247,8 @@ describe('graphTester', () => {
             const node1 = g.node('b');
             const node2 = g.node('c')
             const subgraph = node1 && node2? g.successorsSubgraph([node1.id, node2.id]) : new Graph();
-            const nodeKeys = [...subgraph.nodes.keys()];
-            const edgeKeys = [...subgraph.edges.keys()];
+            const nodeKeys = [...subgraph.nodeMap.keys()];
+            const edgeKeys = [...subgraph.edgeMap.keys()];
             expect(nodeKeys).to.deep.equal([ "b", "h", "c", "d", "f", "e" ]);
             expect(edgeKeys).to.deep.equal([ "b->h", "c->d", "d->f", "c->e", "e->d" ]);
             g.deleteNode('h');
@@ -222,8 +258,8 @@ describe('graphTester', () => {
         it('should find recursive predecessors sub-graph of a given node', () => {
             const node = g.node('d');
             const subgraph = node? g.predecessorsSubgraph(node.id) : new Graph()
-            const nodeKeys = [...subgraph.nodes.keys()];
-            const edgeKeys = [...subgraph.edges.keys()];
+            const nodeKeys = [...subgraph.nodeMap.keys()];
+            const edgeKeys = [...subgraph.edgeMap.keys()];
             expect(nodeKeys).to.deep.equal([ 'd', 'c', 'a', 'g', 'e' ]);
             expect(edgeKeys).to.deep.equal(["c->d","a->c","g->a","e->d","c->e"]);
         })
@@ -232,8 +268,8 @@ describe('graphTester', () => {
             const node1 = g.node('d');
             const node2 = g.node('c')
             const subgraph = node1 && node2? g.predecessorsSubgraph([node1.id, node2.id]) : new Graph();
-            const nodeKeys = [...subgraph.nodes.keys()];
-            const edgeKeys = [...subgraph.edges.keys()];
+            const nodeKeys = [...subgraph.nodeMap.keys()];
+            const edgeKeys = [...subgraph.edgeMap.keys()];
             expect(nodeKeys).to.deep.equal(["d", "c", "a", "g", "e"]);
             expect(edgeKeys).to.deep.equal(["c->d", "a->c", "g->a", "e->d", "c->e"]);
         })
@@ -244,8 +280,8 @@ describe('graphTester', () => {
             const node1 = g.node('d');
             const node2 = g.node('h')
             const subgraph = node1 && node2? g.predecessorsSubgraph([node1.id, node2.id]) : new Graph();
-            const nodeKeys = [...subgraph.nodes.keys()];
-            const edgeKeys = [...subgraph.edges.keys()];
+            const nodeKeys = [...subgraph.nodeMap.keys()];
+            const edgeKeys = [...subgraph.edgeMap.keys()];
             expect(nodeKeys).to.deep.equal( ["d", "c", "a", "g", "e", "h", "b"]);
             expect(edgeKeys).to.deep.equal(["c->d", "a->c", "g->a", "e->d", "c->e", "b->h", "a->b"]);
             g.deleteNode('h');
@@ -382,8 +418,8 @@ describe('graphTester', () => {
                 ]
             };
             const newGraph = Graph.parse(JSON.stringify(json));
-            expect([...newGraph.nodes.keys()]).to.deep.equal(['a', 'b']);
-            expect([...newGraph.edges.keys()]).to.deep.equal(['a->b']);
+            expect([...newGraph.nodeMap.keys()]).to.deep.equal(['a', 'b']);
+            expect([...newGraph.edgeMap.keys()]).to.deep.equal(['a->b']);
             // const str = newGraph.stringify();
             // const graphFromStr = Graph.parse(str);
         } )
@@ -404,9 +440,9 @@ describe('graphTester', () => {
 
         it('should merge graphs', () => {
             const res = g.merge([h, i]);
-            expect(res.nodes.size).to.equal(10);
-            expect(res.edges.size).to.equal(10);
-            expect(res.edges.has('i->h')).to.be.true;
+            expect(res.nodeMap.size).to.equal(10);
+            expect(res.edgeMap.size).to.equal(10);
+            expect(res.edgeMap.has('i->h')).to.be.true;
 
         })
     })

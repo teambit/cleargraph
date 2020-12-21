@@ -45,7 +45,7 @@ function dfs(v) {
     }
     }
 
-    [...g.nodes.keys()].forEach(function(v) {
+    [...g.nodeMap.keys()].forEach(function(v) {
         if (!_.has(visited, v)) {
         dfs(v);
         }
