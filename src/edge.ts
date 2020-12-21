@@ -31,6 +31,14 @@ export class Edge<E> {
     return Edge.edgeId(this.sourceId, this.targetId);
   }
 
+  get source(){
+    return this.sourceId;
+  }
+
+  get target(){
+    return this.targetId;
+  }
+
   stringify() {
     let attrStr: string = '';
     if (!!this.attr['stringify'] && typeof this.attr['stringify'] === 'function'){

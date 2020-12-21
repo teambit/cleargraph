@@ -196,6 +196,7 @@ export class Graph<N , E> {
     return this._edges;
   }
 
+
   /**
    * return the number of nodes in the graph.
    */
@@ -724,7 +725,7 @@ export class Graph<N , E> {
     return false;
   }
 
-  findCycles(graph = this){
+  findCycles(graph = this): string[][]{
     return findCycles(graph);
   }
 
@@ -923,16 +924,15 @@ function makeOutgoingEdges(arr){
 }
 
 function makeNodesHash(arr){
-  var res = new Map()
+  var res = new Map();
   for (var i = 0, len = arr.length; i < len; i++) {
     res.set(arr[i], i)
   }
-  return res
+  return res;
 }
 
-function findCycles(g) {
-  return _.filter(tarjan(g), function(cmpt) {
-    // @ts-ignore
+function findCycles(g: Graph<any, any>): string[][]{
+  return _.filter(tarjan(g), function(cmpt: string[]) {
     return cmpt.length > 1 || (cmpt.length === 1 && g.hasEdge(cmpt[0], cmpt[0]));
   });
 }

@@ -352,9 +352,12 @@ describe('graphTester', () => {
         })
 
         it('should return all cycles in graph', () => {
-            g.setEdge('f','g', new EdgeData('dev', 2));
-            expect(g.findCycles()).to.deep.equal([ [ 'e', 'g', 'f', 'd', 'c', 'a' ] ]);
-            g.deleteEdge('f','g');
+            g.setEdge('c','g', new EdgeData('dev', 2));
+            g.setEdge('f','e', new EdgeData('dev', 2));
+            const cycles = g.findCycles();
+            expect(cycles).to.deep.equal([["e","f","d"],["g","c","a"]]);
+            g.deleteEdge('c','g');
+            g.deleteEdge('f','e');
         })
 
         // it('should stringify graph', () => {
